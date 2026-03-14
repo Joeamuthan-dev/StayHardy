@@ -7,7 +7,7 @@ const BottomNav: React.FC<{ onAddClick?: () => void; isHidden?: boolean }> = ({ 
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
