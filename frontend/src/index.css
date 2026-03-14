@@ -156,8 +156,8 @@ html, body {
 }
 
 .pulled .pull-rope-line {
-  background-color: #4ade80;
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+  background-color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
 .pull-rope-handle {
@@ -175,8 +175,8 @@ html, body {
 }
 
 .pulled .pull-rope-handle {
-  background-color: #4ade80;
-  box-shadow: 0 0 25px rgba(74, 222, 128, 0.6);
+  background-color: #ffffff;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
 }
 
 .pull-rope-handle:hover {
@@ -185,7 +185,7 @@ html, body {
 }
 
 .pulled .pull-rope-handle:hover {
-  box-shadow: 0 0 30px rgba(74, 222, 128, 0.8);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
 }
 
 .pull-rope-handle:active {

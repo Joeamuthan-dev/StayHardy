@@ -126,9 +126,9 @@ const Login: React.FC = () => {
         const otherQuotes = loginQuotes.filter(q => q !== prev);
         return otherQuotes[Math.floor(Math.random() * otherQuotes.length)];
       });
-      gsap.to('.auth-container', { backgroundColor: "#1c1f24", duration: 0.6 });
+      gsap.to('.login-page-root', { backgroundColor: "#09090b", duration: 0.6 });
     } else {
-      gsap.to('.auth-container', { backgroundColor: "#121417", duration: 0.6 });
+      gsap.to('.login-page-root', { backgroundColor: "#000000", duration: 0.6 });
     }
     
     document.body.setAttribute("data-on", nextIsOn.toString());
@@ -263,7 +263,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className={`login-page-root ${isPulled ? 'is-pulled' : ''}`} style={{ background: '#020617', alignItems: 'center', transition: 'all 0.5s ease' }}>
+    <div className={`login-page-root ${isPulled ? 'is-pulled' : ''}`} style={{ background: '#000000', alignItems: 'center', transition: 'all 0.5s ease' }}>
       {/* ── Initial Minimal View (Branding & Tagline) ── */}
       {!isPulled && (
         <div className="login-minimal-header" style={{
