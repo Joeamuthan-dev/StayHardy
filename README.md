@@ -1,33 +1,41 @@
-# 🎯 PENDING. - Premium Task Manager
+# 🎯 StayHardy - Premium Task Manager
 
-A high-performance, glassmorphic task management application built with React, TypeScript, and Firebase.
+StayHardy is a high-performance, glassmorphic task management application built for elite productivity. It uses a modern serverless stack with real-time capabilities.
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **Glassmorphic UI**: Premium design inspired by the Stitch project.
-- **Real-time Sync**: Powered by Firebase Firestore for instantaneous task and feedback updates.
-- **Admin Dashboard**: Full user management, live statistics, and searchable identities.
-- **Smart Timeline**: A "Planner" view to track focus areas and archived tasks.
-- **Cloud-Ready**: Fully serverless architecture for easy deployment.
+- **Premium Glassmorphism**: A sleek, dark-themed UI with Aurora gradients and smooth micro-animations.
+- **Admin Hub**: Real-time platform oversight including:
+  - User activity trends (Signups vs. Tickets).
+  - Advanced user management report.
+  - Remote PIN reset and account purging.
+- **Responsive Dashboard**: Kanban-style priority columns with drag-and-drop functionality.
+- **Support System**: Integrated user feedback and payment support (Razorpay).
+- **Security**: PIN-based login persistence and permanent dark-mode protection.
 
-## 🛠️ Stack
+## 🛠️ The Tech Stack
 
-- **Frontend**: React (Vite), TypeScript, Tailwind CSS.
-- **Backend**: Firebase Authentication & Firestore.
-- **Styling**: Vanilla CSS with custom Aurora gradients and glassmorphism.
+- **Frontend**: React 19, Vite, TypeScript.
+- **Backend & DB**: Supabase (PostgreSQL, Realtime, Storage, Auth).
+- **Charts**: Recharts for administrative analytics.
+- **Styling**: Vanilla CSS with custom design tokens.
 
-## 📦 Deployment
+## 📦 Deployment Instructions
 
-### Frontend (Vercel)
-1. Connect this repo to Vercel.
-2. Add your Firebase environment variables in the project settings.
+### 1. Supabase Setup
+- Create a project on [Supabase](https://supabase.com/).
+- Run the required migrations (create `users`, `tasks`, `feedback`, and `categories` tables).
+- Enable **Storage** and create a public bucket named `avatars` and `task-images`.
 
-### Firebase Setup
-1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
-2. Enable **Firestore** and **Authentication** (Email/Password).
-3. Add your Vercel URL to the **Authorized Domains**.
+### 2. Frontend (Vercel/Netlify)
+- Connect this repository to your hosting provider.
+- Set the **Root Directory** to `frontend`.
+- Configure the following Environment Variables:
+  - `VITE_SUPABASE_URL`: Your Supabase Project URL.
+  - `VITE_SUPABASE_ANON_KEY`: Your Supabase Public Anon Key.
+- Deploy! The `vercel.json` ensures smooth SPA routing.
 
-## 👨‍💻 Development
+## 👨‍💻 Local Development
 
 ```bash
 cd frontend
