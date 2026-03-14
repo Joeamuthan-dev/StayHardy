@@ -66,13 +66,15 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
   background-color: var(--background-dark);
   color: var(--text-main);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .material-symbols-outlined {
@@ -951,10 +953,11 @@ body {
 .dashboard-layout {
   display: flex !important;
   flex-direction: column !important;
-  height: 100vh !important;
-  overflow: hidden !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow-y: auto !important;
   padding: 1.5rem !important;
-  padding-bottom: 5.5rem !important; /* Space for Bottom Nav */
+  padding-bottom: 7rem !important; /* Space for Bottom Nav + breathing room */
 }
 
 @media (min-width: 768px) {
