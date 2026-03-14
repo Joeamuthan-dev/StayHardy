@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c55e",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#0a0a0a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Reset PIN - PENDING</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="flex items-center p-4 justify-between">
+<button class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex-1 px-4">
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight text-center">PENDING</h2>
+</div>
+<div class="size-12"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col items-center justify-center px-6 max-w-md mx-auto w-full">
+<!-- Icon/Security Indicator -->
+<div class="mb-8 p-4 rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-5xl">lock_reset</span>
+</div>
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-bold leading-tight text-center pb-2">Reset Your PIN</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-relaxed pb-10 text-center">
+                Create a new 4-digit PIN for secure access.
+            </p>
+<!-- PIN Entry Fields (Circles/Dots Style) -->
+<div class="flex justify-center gap-6 mb-12">
+<div class="relative">
+<input autocomplete="one-time-code" class="w-14 h-14 text-center text-2xl font-bold bg-slate-100 dark:bg-slate-800/50 border-2 border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all outline-none" maxlength="1" pattern="\d*" type="password"/>
+</div>
+<div class="relative">
+<input autocomplete="one-time-code" class="w-14 h-14 text-center text-2xl font-bold bg-slate-100 dark:bg-slate-800/50 border-2 border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all outline-none" maxlength="1" pattern="\d*" type="password"/>
+</div>
+<div class="relative">
+<input autocomplete="one-time-code" class="w-14 h-14 text-center text-2xl font-bold bg-slate-100 dark:bg-slate-800/50 border-2 border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all outline-none" maxlength="1" pattern="\d*" type="password"/>
+</div>
+<div class="relative">
+<input autocomplete="one-time-code" class="w-14 h-14 text-center text-2xl font-bold bg-slate-100 dark:bg-slate-800/50 border-2 border-transparent focus:border-primary focus:ring-0 rounded-xl transition-all outline-none" maxlength="1" pattern="\d*" type="password"/>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="w-full space-y-4">
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-wide shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all">
+<span class="truncate">Reset PIN</span>
+</button>
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal tracking-wide hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+<span class="truncate">Cancel</span>
+</button>
+</div>
+</main>
+<!-- Footer Info -->
+<footer class="p-8 text-center">
+<div class="flex items-center justify-center gap-2 text-slate-400 dark:text-slate-600 text-xs uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span>End-to-End Encrypted</span>
+</div>
+</footer>
+<!-- Decorative Background Element -->
+<div class="fixed top-0 left-1/2 -translate-x-1/2 -z-10 w-full max-w-lg h-96 opacity-20 pointer-events-none">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/30 to-transparent blur-[100px] rounded-full"></div>
+</div>
+</div>
+</body></html>

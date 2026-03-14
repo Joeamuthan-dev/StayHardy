@@ -1,0 +1,369 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
+import { useAuth } from '../context/AuthContext';
+import BottomNav from '../components/BottomNav';
+
+interface Task {
+  id: string;
+  status: 'pending' | 'completed';
+  category: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+const CategoryProgressBars: React.FC<{ data: any[] }> = ({ data }) => {
+  if (data.length === 0) return null;
+
+  const getPerformance = (score: number) => {
+    if (score <= 10) return { emoji: '🐢', label: 'Barely Moving', verdict: "Are we working… or hibernating?", color: '#8B0000' };
+    if (score <= 20) return { emoji: '🐌', label: 'Slow Starter', verdict: "Movement detected… very slow movement.", color: '#FF0000' };
+    if (score <= 30) return { emoji: '🚶', label: 'Getting Started', verdict: "Okay… at least you're moving now.", color: '#FF4500' };
+    if (score <= 40) return { emoji: '🚲', label: 'Warming Up', verdict: "Pedaling slowly, but heading somewhere.", color: '#FF8C00' };
+    if (score <= 50) return { emoji: '🛵', label: 'Momentum Building', verdict: "Alright, the engine just started.", color: '#FFC107' };
+    if (score <= 60) return { emoji: '🏃', label: 'In Motion', verdict: "Now we're talking. Keep running.", color: '#9ACD32' };
+    if (score <= 70) return { emoji: '🏍️', label: 'Fast Lane', verdict: "Speed is picking up. Stay focused.", color: '#4CAF50' };
+    if (score <= 80) return { emoji: '🐎', label: 'Charging Forward', verdict: "Power and momentum. Nice work.", color: '#009688' };
+    if (score <= 90) return { emoji: '🐆', label: 'Speed Beast', verdict: "That’s serious productivity speed.", color: '#2196F3' };
+    return { emoji: '/images/dragon-legend.png', isImage: true, label: 'THE LEGEND', verdict: "Absolute monster productivity. You are THE LEGEND!", color: '#7B1FA2' };
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', width: '100%', boxSizing: 'border-box' }}>
+      {data.map((stat) => {
+        const { emoji, label, verdict, color, isImage } = getPerformance(stat.rate);
+        return (
+          <div key={stat.name} style={{ width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', padding: '0 0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-main)', letterSpacing: '0.02em' }}>{stat.name}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: color, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'color 0.5s ease' }}>{label}</span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--text-secondary)' }}>{stat.completed}/{stat.total} Tasks</span>
+              </div>
+            </div>
+
+            <div style={{ position: 'relative', height: '18px', background: 'var(--background-dark)', borderRadius: '30px', overflow: 'visible', border: '2px solid var(--glass-border)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3)' }}>
+              {/* Road Markings */}
+              <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '2px', borderTop: '2px dashed var(--border-color)', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
+              
+              {/* Progress Fill */}
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  top: 0, 
+                  left: 0, 
+                  height: '100%', 
+                  width: `${stat.rate}%`, 
+                  backgroundSize: '200% 100%',
+                  backgroundImage: `linear-gradient(90deg, ${color}, ${color}dd, white, ${color}dd, ${color})`,
+                  animation: 'colorShift 3s linear infinite',
+                  borderRadius: '30px',
+                  boxShadow: `0 0 20px ${color}44`,
+                  transition: 'width 2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  zIndex: 2,
+                  overflow: 'hidden'
+                }} 
+              >
+                {/* Dash animation for the filled road */}
+                <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '2px', borderTop: '2px dashed rgba(255,255,255,0.3)', transform: 'translateY(-50%)' }} />
+                {/* Glossy Reflection */}
+                <div style={{ position: 'absolute', top: '10%', left: '2%', right: '2%', height: '25%', background: 'rgba(255,255,255,0.15)', borderRadius: '20px', filter: 'blur(1px)' }} />
+              </div>
+
+              {/* Character & Speech Bubble */}
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  left: `${stat.rate}%`, 
+                  top: '50%', 
+                  transform: 'translate(-50%, -50%)',
+                  transition: 'left 2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  zIndex: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  paddingBottom: '40px' 
+                }}
+              >
+                {/* Speech Bubble */}
+                <div style={{ 
+                  background: 'var(--primary)', 
+                  color: '#064e3b', 
+                  padding: '3px 8px', 
+                  borderRadius: '12px', 
+                  fontSize: '0.7rem', 
+                  fontWeight: 900,
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                  marginBottom: '6px',
+                  animation: 'bounce 2s infinite',
+                  position: 'relative'
+                }}>
+                  %{stat.rate}
+                  <div style={{ position: 'absolute', bottom: '-5px', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid var(--primary)' }} />
+                </div>
+                
+                <span style={{ 
+                  fontSize: '2.5rem', 
+                  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))', 
+                  transform: 'translateY(18px)',
+                  animation: stat.rate > 80 ? 'float 3s ease-in-out infinite' : 'none',
+                  display: 'inline-block'
+                }}>
+                  {isImage ? (
+                    <img src={emoji} alt="Legend" style={{ width: '80px', height: '80px', transform: 'translateY(-10px)' }} />
+                  ) : emoji}
+                </span>
+              </div>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '1.25rem', padding: '0 0.5rem', fontStyle: 'italic', opacity: 0.9 }}>
+              "{verdict}"
+            </p>
+          </div>
+        );
+      })}
+      
+      <style>{`
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(18px) translateX(0); }
+          50% { transform: translateY(10px) translateX(5px); }
+        }
+        @keyframes colorShift {
+          0% { background-position: 0% 0%; }
+          100% { background-position: -200% 0%; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const PerformanceGauge: React.FC<{ score: number; label: string }> = ({ score, label }) => {
+  const width = 280;
+  const height = 160;
+  const cx = width / 2;
+  const cy = height - 10;
+  const radius = 100;
+  const stroke = 24;
+  
+  const circumference = Math.PI * radius;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  return (
+    <div style={{ position: 'relative', width, height, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <defs>
+          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="50%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#10b981" />
+          </linearGradient>
+        </defs>
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="var(--glass-border)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="url(#gaugeGradient)"
+          strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', top: '45%', textAlign: 'center', width: '100%', transform: 'translateY(-50%)' }}>
+        <h2 style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>{score}%</h2>
+        <p style={{ fontSize: '0.75rem', fontWeight: 900, color: score > 70 ? '#10b981' : score > 30 ? '#fbbf24' : '#ef4444', letterSpacing: '0.25em', textTransform: 'uppercase', marginTop: '0.5rem' }}>{label}</p>
+      </div>
+    </div>
+  );
+};
+
+const Stats: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [dbCategories, setDbCategories] = useState<string[]>([]);
+  const { user } = useAuth();
+
+  const getScoreLabels = (score: number, createdCount: number) => {
+    if (score === 0 && createdCount === 0) return { label: 'IDLE', verdict: "No tasks created today. Are we on vacation or just avoiding reality?", icon: 'hotel' };
+    if (score === 0) return { label: 'LAZY', verdict: "0% complete? That's not a score, that's a cry for help. Do something.", icon: 'bed' };
+    if (score < 20) return { label: 'SLACKER', verdict: `${score}%... My grandma moves faster while napping. Pathetic effort.`, icon: 'timer' };
+    if (score < 40) return { label: 'WAKING UP', verdict: `${score}% is better than nothing, but let's not pretend you're working hard.`, icon: 'coffee' };
+    if (score < 60) return { label: 'AVERAGE', verdict: `${score}% performance. You're the human equivalent of unflavored oatmeal.`, icon: 'trending_up' };
+    if (score < 80) return { label: 'CONSISTENT', verdict: `${score}%. You're actually being useful. Don't ruin it by taking a 3-hour break.`, icon: 'workspace_premium' };
+    if (score < 95) return { label: 'BEAST', verdict: `${score}%! Look at you go. Almost impressive. Keep that ego in check though.`, icon: 'bolt' };
+    if (score < 100) return { label: 'ELITE', verdict: `${score}% efficiency. You're so close to perfection it actually hurts.`, icon: 'auto_awesome' };
+    return { label: 'THE GOAT', verdict: "100% CLEAN SWEEP. You're either a productivity god or you're lying to yourself. Legend.", icon: 'stars' };
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchTasks = async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('userId', user.id);
+      
+      if (error) console.error('Supabase fetch error:', error);
+      else if (data) setTasks(data as Task[]);
+    };
+
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('userId', user.id);
+      
+      if (error) console.warn('Categories fetch error:', error.message);
+      else if (data) setDbCategories(data.map(c => c.name));
+    };
+
+    fetchTasks();
+    fetchCategories();
+
+    const tasksChannel = supabase
+        .channel('stats_tasks_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: `userId=eq.${user.id}` }, () => {
+          fetchTasks();
+        })
+        .subscribe();
+
+    const categoriesChannel = supabase
+        .channel('stats_categories_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `userId=eq.${user.id}` }, () => {
+          fetchCategories();
+        })
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(tasksChannel);
+      supabase.removeChannel(categoriesChannel);
+    };
+  }, [user]);
+
+  const defaultCategories = ['Personal', 'Content', 'Health', 'Business'];
+  const allCategories = Array.from(new Set([
+    ...defaultCategories,
+    ...dbCategories,
+    ...tasks.map(t => t.category)
+  ])).filter(c => c && c !== '');
+
+  const categoryStats = allCategories.map(cat => {
+    const catTasks = tasks.filter(t => (t.category || 'Focus') === cat);
+    const catCompleted = catTasks.filter(t => t.status === 'completed').length;
+    return {
+      name: cat,
+      total: catTasks.length,
+      completed: catCompleted,
+      rate: catTasks.length > 0 ? Math.round((catCompleted / catTasks.length) * 100) : 0
+    };
+  }).filter(stat => stat.total > 0)
+    .sort((a, b) => b.total - a.total).slice(0, 10);
+
+  const todayCreated = tasks.filter(t => 
+    new Date(t.createdAt).setHours(0,0,0,0) === new Date().setHours(0,0,0,0)
+  ).length;
+
+  const todayCompleted = tasks.filter(t => 
+    t.status === 'completed' && 
+    t.updatedAt && 
+    new Date(t.updatedAt).setHours(0,0,0,0) === new Date().setHours(0,0,0,0)
+  ).length;
+
+  const dynamicTodayScore = todayCreated > 0 
+    ? Math.min(100, Math.floor((todayCompleted / todayCreated) * 100)) 
+    : 0;
+
+  const { label, verdict, icon } = getScoreLabels(dynamicTodayScore, todayCreated);
+  const pending = todayCreated - todayCompleted;
+
+  return (
+    <div className="page-shell">
+      <div className="aurora-bg">
+        <div className="aurora-gradient-1"></div>
+        <div className="aurora-gradient-2"></div>
+      </div>
+
+      <header style={{ padding: '2.5rem 2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, margin: 0, color: 'var(--text-main)' }}>Productivity Stats</h1>
+          <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.25rem' }}>
+            Performance Metrics
+          </p>
+        </div>
+        <div />
+      </header>
+
+      <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem 5rem' }}>
+        {/* Gauge Section */}
+        <div className="glass-card" style={{ padding: '2.5rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <PerformanceGauge score={dynamicTodayScore} label={label} />
+          
+        </div>
+
+        {/* Verdict Section */}
+        <div className="glass-card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+             <span className="material-symbols-outlined" style={{ color: '#fbbf24', fontSize: '1.5rem' }}>{icon}</span>
+             <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>The Verdict</span>
+          </div>
+          <p style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+            "You've finished {todayCompleted} tasks out of {todayCreated}. {verdict}"
+          </p>
+        </div>
+
+        {/* Stats Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.5rem' }}>Completed</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)' }}>{todayCompleted}</span>
+              <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>↑</span>
+            </div>
+          </div>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.5rem' }}>Abandoned</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)' }}>{pending < 0 ? 0 : pending}</span>
+              <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>↓</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Insight Section */}
+        <section style={{ marginTop: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.2em', margin: 0 }}>Category Insight</h3>
+          </div>
+          
+          {categoryStats.length > 0 ? (
+            <div className="glass-card" style={{ padding: '2.5rem 1.5rem' }}>
+              <CategoryProgressBars data={categoryStats} />
+            </div>
+          ) : (
+            <div className="glass-card" style={{ padding: '4rem 0', textAlign: 'center', opacity: 0.3 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '2rem', marginBottom: '1rem' }}>analytics</span>
+              <p style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '9px' }}>Empty Data</p>
+            </div>
+          )}
+        </section>
+      </main>
+
+      <BottomNav />
+    </div>
+  );
+};
+
+export default Stats;
+
