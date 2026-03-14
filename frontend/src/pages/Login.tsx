@@ -347,7 +347,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className={`auth-title slide-up-fade ${isPulled ? 'visible' : ''}`} style={{ textAlign: 'center', marginBottom: '1rem', flexShrink: 0 }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.025em', margin: 0 }}>{isLogin ? 'StayHardy' : 'Join Us'}</h1>
+          <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.025em', margin: 0, color: '#10b981' }}>{isLogin ? 'StayHardy' : 'Join Us'}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
             Tasks with clarity
           </p>
