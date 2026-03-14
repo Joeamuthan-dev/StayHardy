@@ -35,44 +35,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      // 1. Get the freshest user data from Supabase Auth
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !authUser) {
-        console.log('No auth user found, clearing state');
-        setUser(null);
-        localStorage.removeItem('user');
-        setLoading(false);
-        return;
-      }
-
-      const meta = authUser.user_metadata || {};
-      
-      // Construct fallback URL based on email (new standard)
-      const emailFilename = `${authUser.email?.replace(/@/g, '_at_')}.jpg`;
-      const { data: { publicUrl: emailBasedUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(emailFilename);
-
-      const baseData = {
-        id: authUser.id,
-        name: meta.name || '',
-        email: authUser.email || '',
-        avatarUrl: meta.avatar_url || meta.avatarUrl || meta.avatar || emailBasedUrl || '',
-        role: authUser.email?.toLowerCase().trim() === 'joe@gmail.com' ? 'admin' : 'user'
-      };
-
-      // Ensure we add cache buster to the constructed URL
-      if (baseData.avatarUrl && !baseData.avatarUrl.includes('?t=')) {
-        baseData.avatarUrl = `${baseData.avatarUrl}?t=${Date.now()}`;
-      }
-
-      // 2. Set initial state from metadata immediately
-      setUser(baseData);
-      localStorage.setItem('user', JSON.stringify(baseData));
-
-      // 3. Try to augment with DB data
       try {
+        // 1. Get the freshest user data from Supabase Auth
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !authUser) {
+          console.log('No auth user found, clearing state');
+          setUser(null);
+          localStorage.removeItem('user');
+          return;
+        }
+
+        const meta = authUser.user_metadata || {};
+        
+        // Construct fallback URL based on email (new standard)
+        const emailFilename = `${authUser.email?.replace(/@/g, '_at_')}.jpg`;
+        const { data: { publicUrl: emailBasedUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(emailFilename);
+
+        const baseData = {
+          id: authUser.id,
+          name: meta.name || '',
+          email: authUser.email || '',
+          avatarUrl: meta.avatar_url || meta.avatarUrl || meta.avatar || emailBasedUrl || '',
+          role: authUser.email?.toLowerCase().trim() === 'joe@gmail.com' ? 'admin' : 'user'
+        };
+
+        // Ensure we add cache buster to the constructed URL
+        if (baseData.avatarUrl && !baseData.avatarUrl.includes('?t=')) {
+          baseData.avatarUrl = `${baseData.avatarUrl}?t=${Date.now()}`;
+        }
+
+        // 2. Set initial state from metadata immediately
+        setUser(baseData);
+        localStorage.setItem('user', JSON.stringify(baseData));
+
+        // 3. Try to augment with DB data
         const { data: dbData, error: dbError } = await supabase
           .from('users')
           .select('name, role, avatar_url')
@@ -91,9 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem('user', JSON.stringify(finalData));
         }
       } catch (err) {
-        // Fallback already set
+        console.error('Auth Profile Fetch Error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     // Initial check
