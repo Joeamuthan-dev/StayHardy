@@ -32,13 +32,30 @@ interface RoutineLog {
 }
 
 const ROUTINE_ICONS = [
-  'fitness_center', 'self_improvement', 'directions_run', 'pool',
-  'menu_book', 'edit_note', 'language', 'psychology', 'school',
-  'water_drop', 'restaurant', 'coffee', 'local_hospital', 'pill',
-  'bed', 'wb_sunny', 'nightlight', 'alarm', 'timer',
-  'work', 'laptop_mac', 'code', 'design_services', 'payments',
-  'home', 'cleaning_services', 'yard', 'pets', 'family_restroom'
+  // Sleep & Rest
+  'bed', 'nightlight', 'dark_mode', 'alarm', 'snooze',
+  // Food & Drink
+  'restaurant', 'lunch_dining', 'local_cafe', 'coffee', 'water_drop', 'nutrition',
+  // Gym & Fitness
+  'fitness_center', 'directions_run', 'sports_gymnastics', 'exercise', 'sports_martial_arts',
+  // Yoga & Mindfulness
+  'self_improvement', 'spa', 'emoji_nature', 'meditation',
+  // Work & Job
+  'work', 'laptop_mac', 'business_center', 'schedule', 'task_alt',
+  // Content & Video
+  'play_circle', 'videocam', 'mic', 'photo_camera', 'edit_note',
+  // Travel
+  'flight', 'directions_car', 'commute', 'hiking', 'map',
+  // Learning & Growth
+  'menu_book', 'school', 'psychology', 'language', 'lightbulb',
+  // Social & People
+  'people', 'chat', 'handshake', 'family_restroom', 'volunteer_activism',
+  // Health
+  'favorite', 'local_hospital', 'pill', 'medical_information',
+  // Home & Daily
+  'home', 'cleaning_services', 'shower', 'wb_sunny', 'timer',
 ];
+
 
 const DEFAULT_CATEGORIES = ['Health', 'Work', 'Mindset', 'Growth', 'Home', 'Social'];
 
@@ -411,7 +428,7 @@ const Routine: React.FC = () => {
               </div>
               <div className="input-group">
                 <label style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', marginBottom: '0.5rem', display: 'block' }}>ICON</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '0.5rem', maxHeight: '100px', overflowY: 'auto', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>{ROUTINE_ICONS.map(iconName => <div key={iconName} onClick={() => setSelectedIcon(iconName)} className={`form-icon-option ${selectedIcon === iconName ? 'active' : ''}`} style={{ '--active-color': color } as any}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{iconName}</span></div>)}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(40px, 1fr))', gap: '0.5rem', maxHeight: '140px', overflowY: 'auto', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>{ROUTINE_ICONS.map(iconName => <div key={iconName} onClick={() => setSelectedIcon(iconName)} className={`form-icon-option ${selectedIcon === iconName ? 'active' : ''}`} style={{ '--active-color': color } as any}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{iconName}</span></div>)}</div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="input-group">
