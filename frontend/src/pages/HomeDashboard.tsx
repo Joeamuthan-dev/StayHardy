@@ -36,6 +36,8 @@ interface Goal {
 }
 
 const HomeDashboard: React.FC = () => {
+  const [isSidebarHidden, setIsSidebarHidden] = useState(() => localStorage.getItem('sidebarHidden') === 'true');
+  const toggleSidebar = () => { setIsSidebarHidden(prev => { const next = !prev; localStorage.setItem('sidebarHidden', next.toString()); return next; }); };
   const { language } = useLanguage();
   const getTimeGreeting = () => {
     const hour = new Date().getHours();
@@ -212,7 +214,7 @@ const HomeDashboard: React.FC = () => {
   };
   
   return (
-    <div className="page-shell">
+    <div className={`page-shell ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
       <style>{`
         @media (min-width: 769px) { .shortcut-btn-label { display: block !important; } }
         @media (max-width: 768px) { 
@@ -234,6 +236,22 @@ const HomeDashboard: React.FC = () => {
           <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em', marginTop: '0.25rem', textTransform: 'uppercase' }}>
             Overview
           </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={toggleSidebar}
+            className="notification-btn desktop-only-btn"
+            title={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar (Focus Mode)"}
+            data-tooltip={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar"}
+            style={{
+              ...(isSidebarHidden ? { background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' } : {}),
+              opacity: 0.5
+            }}
+          >
+            <span className="material-symbols-outlined">
+              {isSidebarHidden ? 'side_navigation' : 'fullscreen'}
+            </span>
+          </button>
         </div>
       </header>
 

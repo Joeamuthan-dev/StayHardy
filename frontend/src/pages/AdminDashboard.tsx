@@ -6,6 +6,8 @@ import BottomNav from '../components/BottomNav';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const AdminDashboard: React.FC = () => {
+  const [isSidebarHidden, setIsSidebarHidden] = useState(() => localStorage.getItem('sidebarHidden') === 'true');
+  const toggleSidebar = () => { setIsSidebarHidden(prev => { const next = !prev; localStorage.setItem('sidebarHidden', next.toString()); return next; }); };
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ users: 0, tasks: 0, goals: 0 });
@@ -248,18 +250,34 @@ const AdminDashboard: React.FC = () => {
   if (!user || user.role !== 'admin') return null;
 
   return (
-    <div className="page-shell">
+    <div className={`page-shell ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
       <div className="aurora-bg">
         <div className="aurora-gradient-1"></div>
         <div className="aurora-gradient-2"></div>
       </div>
 
-      <header className="dashboard-header" style={{ marginBottom: '2.5rem' }}>
+      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',  marginBottom: '2.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, margin: 0, color: 'var(--text-main)' }}>Admin Hub</h1>
           <p style={{ color: '#BBFF00', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.25rem' }}>
             System Integrity & Oversight
           </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={toggleSidebar}
+            className="notification-btn desktop-only-btn"
+            title={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar (Focus Mode)"}
+            data-tooltip={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar"}
+            style={{
+              ...(isSidebarHidden ? { background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' } : {}),
+              opacity: 0.5
+            }}
+          >
+            <span className="material-symbols-outlined">
+              {isSidebarHidden ? 'side_navigation' : 'fullscreen'}
+            </span>
+          </button>
         </div>
       </header>
 

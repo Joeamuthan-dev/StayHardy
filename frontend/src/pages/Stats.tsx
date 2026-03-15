@@ -295,6 +295,8 @@ const ActivityTrendChart: React.FC<{ data: any[]; days: number; setDays: (d: num
 };
 
 const Stats: React.FC = () => {
+  const [isSidebarHidden, setIsSidebarHidden] = useState(() => localStorage.getItem('sidebarHidden') === 'true');
+  const toggleSidebar = () => { setIsSidebarHidden(prev => { const next = !prev; localStorage.setItem('sidebarHidden', next.toString()); return next; }); };
   const [tasks, setTasks] = useState<Task[]>([]);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routineLogs, setRoutineLogs] = useState<RoutineLog[]>([]);
@@ -510,7 +512,7 @@ const Stats: React.FC = () => {
   const { label, verdict, icon } = getScoreLabels(dynamicTodayScore, totalUserTasks + totalGoals + totalRoutines);
 
   return (
-    <div className="page-shell">
+    <div className={`page-shell ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
       <div className="aurora-bg">
         <div className="aurora-gradient-1"></div>
         <div className="aurora-gradient-2"></div>
@@ -547,7 +549,22 @@ const Stats: React.FC = () => {
             Combined Performance Metrics
           </p>
         </div>
-        <div />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button
+            onClick={toggleSidebar}
+            className="notification-btn desktop-only-btn"
+            title={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar (Focus Mode)"}
+            data-tooltip={isSidebarHidden ? "Show Sidebar" : "Hide Sidebar"}
+            style={{
+              ...(isSidebarHidden ? { background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' } : {}),
+              opacity: 0.5
+            }}
+          >
+            <span className="material-symbols-outlined">
+              {isSidebarHidden ? 'side_navigation' : 'fullscreen'}
+            </span>
+          </button>
+        </div>
       </header>
 
       <main style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 1rem 5rem' }}>
