@@ -510,8 +510,19 @@ const AdminDashboard: React.FC = () => {
                           }}
                         >
                           <td style={{ padding: '1.25rem 1.5rem' }}>
-                            <div style={{ fontWeight: 800, color: 'white', fontSize: '0.85rem' }}>{u.name}</div>
-                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{u.email}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BBFF00', fontWeight: 800, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
+                                {(u.avatar_url || u.avatarUrl) ? (
+                                  <img src={u.avatar_url || u.avatarUrl} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  u.name?.charAt(0).toUpperCase() || 'U'
+                                )}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 800, color: 'white', fontSize: '0.85rem' }}>{u.name}</div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{u.email}</div>
+                              </div>
+                            </div>
                           </td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
                             {u.created_at ? new Date(u.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : 'N/A'}
