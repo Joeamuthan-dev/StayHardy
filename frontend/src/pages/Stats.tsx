@@ -145,30 +145,7 @@ const CategoryProgressBars: React.FC<{ data: any[] }> = ({ data }) => {
         );
       })}
       
-      <style>{`
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(18px) translateX(0); }
-          50% { transform: translateY(10px) translateX(5px); }
-        }
-        @keyframes colorShift {
-          0% { background-position: 0% 0%; }
-          100% { background-position: -200% 0%; }
-        }
-        .stats-top-split {
-          display: grid;
-          grid-template-columns: 3fr 7fr;
-          gap: 1.5rem;
-        }
-        @media (max-width: 768px) {
-          .stats-top-split {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+      
     </div>
   );
 };
@@ -538,6 +515,30 @@ const Stats: React.FC = () => {
         <div className="aurora-gradient-1"></div>
         <div className="aurora-gradient-2"></div>
       </div>
+      <style>{`
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(18px) translateX(0); }
+          50% { transform: translateY(10px) translateX(5px); }
+        }
+        @keyframes colorShift {
+          0% { background-position: 0% 0%; }
+          100% { background-position: -200% 0%; }
+        }
+        .stats-top-split {
+          display: grid;
+          grid-template-columns: 3fr 7fr;
+          gap: 1.5rem;
+        }
+        @media (max-width: 768px) {
+          .stats-top-split {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
 
       <header style={{ padding: '2.5rem 2rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
