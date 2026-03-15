@@ -12,6 +12,25 @@ interface Task {
   updatedAt?: string;
 }
 
+interface Routine {
+  id: string;
+  title: string;
+  days: string[];
+}
+
+interface RoutineLog {
+  routine_id: string;
+  completed_at: string;
+}
+
+interface Goal {
+  id: string;
+  name: string;
+  targetDate: string;
+  status: 'pending' | 'completed';
+  progress: number;
+}
+
 
 const CategoryProgressBars: React.FC<{ data: any[] }> = ({ data }) => {
   if (data.length === 0) return null;
@@ -264,6 +283,7 @@ const ActivityTrendChart: React.FC<{ data: any[]; days: number; setDays: (d: num
               />
               <YAxis 
                 hide 
+                domain={[0, 100]}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -278,21 +298,12 @@ const ActivityTrendChart: React.FC<{ data: any[]; days: number; setDays: (d: num
                 }} 
                 itemStyle={{ padding: "2px 0" }} 
                 cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 2 }} 
+                formatter={(value: any) => [`${value}%`, 'Score']}
               />
               <Area 
                 type="monotone" 
-                dataKey="created" 
-                name="Created" 
-                stroke="#fbbf24" 
-                strokeWidth={4} 
-                fillOpacity={1} 
-                fill="url(#colorCreated)" 
-                animationDuration={1500} 
-              />
-              <Area 
-                type="monotone" 
-                dataKey="completed" 
-                name="Completed" 
+                dataKey="score" 
+                name="Productivity" 
                 stroke="#10b981" 
                 strokeWidth={4} 
                 fillOpacity={1} 
@@ -308,6 +319,9 @@ const ActivityTrendChart: React.FC<{ data: any[]; days: number; setDays: (d: num
 
 const Stats: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [routineLogs, setRoutineLogs] = useState<RoutineLog[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [dbCategories, setDbCategories] = useState<string[]>([]);
   const [trendDays, setTrendDays] = useState(7);
   const { user } = useAuth();
@@ -327,41 +341,63 @@ const Stats: React.FC = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    const fetchTasks = async () => {
-      const { data, error } = await supabase
+    const fetchAllData = async () => {
+      // Fetch Tasks
+      const { data: tasksData, error: taskErr } = await supabase
         .from('tasks')
         .select('*')
         .eq('userId', user.id);
-      
-      if (error) console.error('Supabase fetch error:', error);
-      else if (data) setTasks(data as Task[]);
-    };
+      if (taskErr) console.error('Supabase fetch error:', taskErr);
+      else if (tasksData) setTasks(tasksData as Task[]);
 
-
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
+      // Fetch Categories
+      const { data: catData, error: catErr } = await supabase
         .from('categories')
         .select('name')
         .eq('userId', user.id);
-      
-      if (error) console.warn('Categories fetch error:', error.message);
-      else if (data) setDbCategories(data.map(c => c.name));
+      if (catErr) console.warn('Categories fetch error:', catErr.message);
+      else if (catData) setDbCategories(catData.map(c => c.name));
+
+      // Fetch Routines
+      const { data: routinesData } = await supabase
+        .from('routines')
+        .select('*')
+        .eq('user_id', user.id);
+      if (routinesData) setRoutines(routinesData as Routine[]);
+
+      // Fetch Routine Logs (last 30 days is enough for trend and streak calculations)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startDayStr = thirtyDaysAgo.getFullYear() + '-' + String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0') + '-' + String(thirtyDaysAgo.getDate()).padStart(2, '0');
+
+      const { data: logsData } = await supabase
+        .from('routine_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('completed_at', startDayStr);
+      if (logsData) setRoutineLogs(logsData as RoutineLog[]);
+
+      // Fetch Goals
+      const { data: goalsData } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('userId', user.id);
+      if (goalsData) setGoals(goalsData as Goal[]);
     };
 
-    fetchTasks();
-    fetchCategories();
+    fetchAllData();
 
     const tasksChannel = supabase
         .channel('stats_tasks_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: `userId=eq.${user.id}` }, () => {
-          fetchTasks();
+          fetchAllData();
         })
         .subscribe();
 
     const categoriesChannel = supabase
         .channel('stats_categories_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'categories', filter: `userId=eq.${user.id}` }, () => {
-          fetchCategories();
+          fetchAllData();
         })
         .subscribe();
 
@@ -378,38 +414,109 @@ const Stats: React.FC = () => {
     ...tasks.map((t: Task) => t.category)
   ])).filter(c => c && c !== '');
     
+  const totalGoals = goals.length;
+  const activeGoalsCount = goals.filter(g => g.status === 'pending').length;
+  const overdueGoalsCount = goals.filter(g => g.status === 'pending' && g.targetDate && new Date(g.targetDate).getTime() < new Date().setHours(0,0,0,0)).length;
+  const avgGoalProgress = totalGoals > 0 ? Math.round(goals.reduce((acc, g) => acc + (g.status === 'completed' ? 100 : (g.progress || 0)), 0) / totalGoals) : 0;
+
+  const totalUserTasks = tasks.length;
+  const completedUserTasks = tasks.filter((t: Task) => t.status === 'completed').length;
+  const pendingCount = tasks.filter(t => t.status === 'pending').length;
+  const taskCompletionRate = totalUserTasks > 0 ? Math.round((completedUserTasks / totalUserTasks) * 100) : 0;
+
+  const totalRoutines = routines.length;
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const todayDate = new Date();
+  const currentDayName = daysOfWeek[todayDate.getDay()];
+  const activeRoutinesTodayCount = routines.filter(r => r.days?.includes(currentDayName)).length;
+
+  const localTodayStr = new Date(todayDate.getTime() - (todayDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+  const routinesCompletedToday = routineLogs.filter(l => l.completed_at === localTodayStr).length;
+  const todayRoutineRate = activeRoutinesTodayCount > 0 ? (routinesCompletedToday / activeRoutinesTodayCount) * 100 : 0;
+
+  let currentStreak = 0;
+  const uniqueLogDaysSet = new Set(routineLogs.map(l => l.completed_at));
+  for (let i = 0; i < 365; i++) {
+    const checkDate = new Date();
+    checkDate.setDate(checkDate.getDate() - i);
+    const checkStr = new Date(checkDate.getTime() - (checkDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const checkDayName = daysOfWeek[checkDate.getDay()];
+    const scheduledThatDay = routines.filter(r => r.days?.includes(checkDayName)).length;
+    
+    if (uniqueLogDaysSet.has(checkStr)) {
+      currentStreak++;
+    } else {
+      if (i === 0) continue; // Today missing doesn't break streak yet
+      if (scheduledThatDay === 0) continue; // Not scheduled, doesn't break streak
+      break; // Scheduled but missed
+    }
+  }
+
+  const startDateForConsistency = new Date();
+  startDateForConsistency.setHours(0,0,0,0);
+  let expectedRoutinesLast7Days = 0;
+  for(let i=0; i<7; i++) {
+    const d = new Date(startDateForConsistency);
+    d.setDate(d.getDate() - i);
+    const dayName = daysOfWeek[d.getDay()];
+    expectedRoutinesLast7Days += routines.filter(r => r.days?.includes(dayName)).length;
+  }
+  
+  const last7DaysLogs = routineLogs.filter(l => {
+    const d = new Date(l.completed_at);
+    return (startDateForConsistency.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+  });
+  const weeklyConsistency = expectedRoutinesLast7Days > 0 ? Math.min(100, Math.round((last7DaysLogs.length / expectedRoutinesLast7Days) * 100)) : 0;
+
+  let weightTasks = totalUserTasks > 0 ? 0.5 : 0;
+  let weightRoutines = activeRoutinesTodayCount > 0 ? 0.3 : 0;
+  let weightGoals = totalGoals > 0 ? 0.2 : 0;
+  let totalWeight = weightTasks + weightRoutines + weightGoals;
+
+  const dynamicTodayScore = totalWeight > 0 
+    ? Math.round(((taskCompletionRate * weightTasks) + (todayRoutineRate * weightRoutines) + (avgGoalProgress * weightGoals)) / totalWeight)
+    : 0;
+
   const historicalData = useMemo(() => {
     const data = [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     
+    const goalScore = totalGoals > 0 ? (goals.reduce((acc, g) => acc + (g.status === 'completed' ? 100 : (g.progress || 0)), 0) / totalGoals) : 0;
+    
     for (let i = trendDays - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      
       const dayStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       const dayStart = d.getTime();
       const nextDayStart = dayStart + 24 * 60 * 60 * 1000;
+      const localDayStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const checkDayName = daysOfWeek[d.getDay()];
 
-      const created = tasks.filter((t: Task) => {
-        const createdDate = new Date(t.createdAt).getTime();
-        return createdDate >= dayStart && createdDate < nextDayStart;
-      }).length;
+      const totalTasksUpToDay = tasks.filter((t: Task) => new Date(t.createdAt).getTime() < nextDayStart).length;
+      const compTasksUpToDay = tasks.filter((t: Task) => t.status === 'completed' && t.updatedAt && new Date(t.updatedAt).getTime() < nextDayStart).length;
+      const cumulativeTaskRate = totalTasksUpToDay > 0 ? (compTasksUpToDay / totalTasksUpToDay) * 100 : 0;
 
-      const completed = tasks.filter((t: Task) => {
-        if (t.status !== 'completed' || !t.updatedAt) return false;
-        const updatedDate = new Date(t.updatedAt).getTime();
-        return updatedDate >= dayStart && updatedDate < nextDayStart;
-      }).length;
+      const scheduledThatDay = routines.filter(r => r.days?.includes(checkDayName)).length;
+      const routinesCompletedThatDay = routineLogs.filter(l => l.completed_at === localDayStr).length;
+      const dailyRoutineRate = scheduledThatDay > 0 ? (routinesCompletedThatDay / scheduledThatDay) * 100 : 0;
+      
+      let wTasks = totalTasksUpToDay > 0 ? 0.5 : 0;
+      let wRoutines = scheduledThatDay > 0 ? 0.3 : 0;
+      let wGoals = totalGoals > 0 ? 0.2 : 0;
+      let wTotal = wTasks + wRoutines + wGoals;
+
+      const combined = wTotal > 0 
+        ? Math.round(((cumulativeTaskRate * wTasks) + (dailyRoutineRate * wRoutines) + (goalScore * wGoals)) / wTotal)
+        : 0;
 
       data.push({
         name: dayStr,
-        created,
-        completed
+        score: combined
       });
     }
     return data;
-  }, [tasks, trendDays]);
+  }, [tasks, routines, routineLogs, goals, trendDays]);
 
   const categoryStats = allCategories.map(cat => {
     const catTasks = tasks.filter((t: Task) => (t.category || 'Focus') === cat);
@@ -423,15 +530,7 @@ const Stats: React.FC = () => {
   }).filter(stat => stat.total > 0)
     .sort((a, b) => b.total - a.total).slice(0, 10);
 
-  const totalUserTasks = tasks.length;
-  const completedUserTasks = tasks.filter((t: Task) => t.status === 'completed').length;
-
-  const dynamicTodayScore = totalUserTasks > 0 
-    ? Math.floor((completedUserTasks / totalUserTasks) * 100) 
-    : 0;
-
-  const { label, verdict, icon } = getScoreLabels(dynamicTodayScore, totalUserTasks);
-  const pendingCount = totalUserTasks - completedUserTasks;
+  const { label, verdict, icon } = getScoreLabels(dynamicTodayScore, totalUserTasks + totalGoals + totalRoutines);
 
   return (
     <div className="page-shell">
@@ -444,7 +543,7 @@ const Stats: React.FC = () => {
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, margin: 0, color: 'var(--text-main)' }}>Productivity Stats</h1>
           <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '0.25rem' }}>
-            Performance Metrics
+            Combined Performance Metrics
           </p>
         </div>
         <div />
@@ -469,25 +568,86 @@ const Stats: React.FC = () => {
              <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>The Verdict</span>
           </div>
           <p style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-            "You've finished {completedUserTasks} tasks out of {totalUserTasks} total. {verdict}"
+            "Tasks: {taskCompletionRate}%, Routines: {Math.round(todayRoutineRate)}%, Goals: {avgGoalProgress}%. {verdict}"
           </p>
         </div>
 
-        {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        {/* Summary Metrics */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Tasks Metrics */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.5rem' }}>Completed</span>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)' }}>{completedUserTasks}</span>
-              <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>↑</span>
-            </div>
+             <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <span className="material-symbols-outlined" style={{color: '#10b981'}}>checklist</span> Tasks Insight
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-main)' }}>{totalUserTasks}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Completed</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{completedUserTasks}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Pending</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f59e0b' }}>{pendingCount}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Rate</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#3b82f6' }}>{taskCompletionRate}%</div>
+               </div>
+             </div>
           </div>
+
+          {/* Goals Metrics */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.5rem' }}>Pending</span>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)' }}>{pendingCount}</span>
-              <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>↓</span>
-            </div>
+             <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <span className="material-symbols-outlined" style={{color: '#a855f7'}}>star</span> Goals Insight
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-main)' }}>{totalGoals}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Active</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{activeGoalsCount}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Overdue</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ef4444' }}>{overdueGoalsCount}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Progress</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#3b82f6' }}>{avgGoalProgress}%</div>
+               </div>
+             </div>
+          </div>
+
+          {/* Routines Metrics */}
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+             <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               <span className="material-symbols-outlined" style={{color: '#3b82f6'}}>calendar_check</span> Routines Insight
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Created</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-main)' }}>{totalRoutines}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Done Today</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{routinesCompletedToday}</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Consistency</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#3b82f6' }}>{weeklyConsistency}%</div>
+               </div>
+               <div>
+                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Streak</span>
+                 <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f59e0b' }}>{currentStreak}</div>
+               </div>
+             </div>
           </div>
         </div>
 

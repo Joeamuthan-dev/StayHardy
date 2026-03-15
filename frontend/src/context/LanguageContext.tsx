@@ -22,11 +22,12 @@ const translations: Record<Language, Record<string, string>> = {
     support: 'Support',
     send_tips: 'Send tips to developer',
     sign_out: 'Sign Out',
-    home: 'Home',
-    timeline: 'AllTasks',
+    home: 'Tasks',
+    timeline: 'History',
     stats: 'Stats',
     profile: 'Profile',
     daily_goal: 'Daily Goal',
+    target_date: 'Target Date',
     pending: 'Pending',
     active_tasks: 'Active Tasks',
     today_focus: 'Today\'s Focus',
@@ -66,7 +67,8 @@ const translations: Record<Language, Record<string, string>> = {
     description_vision: 'Description & Vision',
     define_milestone: 'Define Your Goal',
     what_achieve: 'What do you want to achieve?',
-    path_success: 'Describe your path to success...'
+    path_success: 'Describe your path to success...',
+    routine: 'Routine'
   },
   Tamil: {
     settings: 'அமைப்புகள்',
@@ -80,10 +82,11 @@ const translations: Record<Language, Record<string, string>> = {
     send_tips: 'உருவாக்குபவருக்கு டிப்ஸ் அனுப்பவும்',
     sign_out: 'வெளியேறு',
     home: 'முகப்பு',
-    timeline: 'அனைத்து பணிகள்',
+    timeline: 'வரலாறு',
     stats: 'புள்ளிவிவரம்',
     profile: 'சுயவிவரம்',
     daily_goal: 'தினசரி இலக்கு',
+    target_date: 'இலக்கு தேதி',
     pending: 'மறுபதிவு',
     active_tasks: 'செயலில் உள்ள பணிகள்',
     today_focus: 'இன்றைய கவனம்',
@@ -123,7 +126,8 @@ const translations: Record<Language, Record<string, string>> = {
     description_vision: 'விளக்கம் மற்றும் பார்வை',
     define_milestone: 'உங்கள் இலக்கை வரையறுக்கவும்',
     what_achieve: 'நீங்கள் எதைச் சாதிக்க விரும்புகிறீர்கள்?',
-    path_success: 'வெற்றிக்கான உங்கள் பாதையை விவரிக்கவும்...'
+    path_success: 'வெற்றிக்கான உங்கள் பாதையை விவரிக்கவும்...',
+    routine: 'தினசரி நடைமுறை'
   }
 };
 

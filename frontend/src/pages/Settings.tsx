@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
@@ -9,7 +8,6 @@ import { supabase } from '../supabase';
 
 const Settings: React.FC = () => {
   const { user, logout, updateUserMetadata } = useAuth();
-  const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -21,6 +19,54 @@ const Settings: React.FC = () => {
   const [pinSuccess, setPinSuccess] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [snapshotStats, setSnapshotStats] = useState({ completedTasks: 0, routineStreak: 0, activeGoals: 0 });
+
+  const [showConfirmReset, setShowConfirmReset] = useState<{ show: boolean; type: 'tasks' | 'routines' | 'stats' | 'delete' | '' }>({ show: false, type: '' });
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    const fetchStats = async () => {
+      const { count: tasksCount } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('userId', user.id).eq('status', 'completed');
+      const { count: goalsCount } = await supabase.from('goals').select('*', { count: 'exact', head: true }).eq('userId', user.id).eq('status', 'pending');
+      const { data: routines } = await supabase.from('routines').select('streak').eq('userId', user.id);
+      const maxStreak = routines ? Math.max(...routines.map(r => r.streak || 0), 0) : 0;
+      setSnapshotStats({ completedTasks: tasksCount || 0, routineStreak: maxStreak, activeGoals: goalsCount || 0 });
+    };
+    fetchStats();
+  }, [user]);
+
+
+
+  const handleExportData = async () => {
+    if (!user?.id) return;
+    try {
+      const { data: tasks } = await supabase.from('tasks').select('*').eq('userId', user.id);
+      const { data: goals } = await supabase.from('goals').select('*').eq('userId', user.id);
+      const { data: routines } = await supabase.from('routines').select('*').eq('userId', user.id);
+      const { data: logs } = await supabase.from('routine_logs').select('*').eq('userId', user.id);
+      const { data: feedback } = await supabase.from('feedback').select('*').eq('userId', user.id);
+      const exportData = { createdAt: new Date().toISOString(), user: { id: user.id, email: user.email, name: user.name }, tasks: tasks || [], goals: goals || [], routines: routines || [], routine_logs: logs || [], feedback: feedback || [] };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a'); link.download = `stayhardy_data_${user.name || 'user'}.json`; link.href = URL.createObjectURL(blob); link.click();
+    } catch (err) { console.error('Export failed:', err); }
+  };
+
+  const handleResetData = async () => {
+    if (!user?.id || !showConfirmReset.type) return;
+    try {
+      if (showConfirmReset.type === 'tasks') { await supabase.from('tasks').delete().eq('userId', user.id); }
+      else if (showConfirmReset.type === 'routines') { await supabase.from('routines').delete().eq('userId', user.id); }
+      else if (showConfirmReset.type === 'stats') { await supabase.from('routine_logs').delete().eq('userId', user.id); }
+      else if (showConfirmReset.type === 'delete') {
+         await supabase.from('tasks').delete().eq('userId', user.id); await supabase.from('goals').delete().eq('userId', user.id);
+         await supabase.from('routines').delete().eq('userId', user.id); await supabase.from('routine_logs').delete().eq('userId', user.id);
+         await supabase.from('feedback').delete().eq('userId', user.id); await supabase.from('users').delete().eq('id', user.id);
+         await logout(); navigate('/login'); return;
+      }
+      alert('Action completed successfully!');
+      setShowConfirmReset({ show: false, type: '' });
+    } catch (err) { console.error('Reset failed:', err); }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -293,6 +339,19 @@ const Settings: React.FC = () => {
           )}
         </div>
 
+        {/* Section: Productivity Snapshot */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.5rem', marginBottom: '0.25rem' }}>Productivity Snapshot</h3>
+          <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+              <div style={{ textAlign: 'center' }}><strong style={{ display: 'block', fontSize: '1.5rem', color: '#10b981' }}>{snapshotStats.completedTasks}</strong><span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800 }}>Completed</span></div>
+              <div style={{ textAlign: 'center' }}><strong style={{ display: 'block', fontSize: '1.5rem', color: '#f59e0b' }}>{snapshotStats.routineStreak}</strong><span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800 }}>Streak</span></div>
+              <div style={{ textAlign: 'center' }}><strong style={{ display: 'block', fontSize: '1.5rem', color: '#3b82f6' }}>{snapshotStats.activeGoals}</strong><span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800 }}>Active Goals</span></div>
+            </div>
+            </div>
+          </div>
+
+
         {/* Section: App Preferences */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.5rem', marginBottom: '0.25rem' }}>App Preferences</h3>
@@ -300,29 +359,10 @@ const Settings: React.FC = () => {
           <div className="glass-card" style={{ padding: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span className="material-symbols-outlined" style={{ color: '#10b981' }}>translate</span>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>Language</span>
-              </div>
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', gap: '4px' }}>
-                <button 
-                  onClick={() => setLanguage('English')}
-                  style={{ background: language === 'English' ? '#10b981' : 'transparent', color: language === 'English' ? '#064e3b' : '#64748b', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s' }}
-                >EN</button>
-                <button 
-                  onClick={() => setLanguage('Tamil')}
-                  style={{ background: language === 'Tamil' ? '#10b981' : 'transparent', color: language === 'Tamil' ? '#064e3b' : '#64748b', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s' }}
-                >தமிழ்</button>
-              </div>
-            </div>
-
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '0 1rem' }}></div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <span className="material-symbols-outlined" style={{ color: theme === 'dark' ? '#BBFF00' : '#10b981' }}>
                   {theme === 'dark' ? 'dark_mode' : 'light_mode'}
                 </span>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Theme Mode</span>
+                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>Theme Mode</span>
               </div>
               <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '12px', gap: '4px' }}>
                 <button 
@@ -337,6 +377,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
         </div>
+
+
 
         {/* Section: Support & Growth */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -387,26 +429,52 @@ const Settings: React.FC = () => {
           </button>
         </div>
 
-        {/* Section: Admin Tools (Conditional) */}
-        {user?.role === 'admin' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.5rem', marginBottom: '0.25rem' }}>Admin Tools</h3>
-            
-            <button 
-              onClick={() => navigate('/admin')}
-              className="glass-card" 
-              style={{ width: '100%', border: '1px solid var(--glass-border)', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'white', cursor: 'pointer', textAlign: 'left' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span className="material-symbols-outlined" style={{ color: '#BBFF00' }}>admin_panel_settings</span>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>Admin Control Center</span>
-              </div>
+
+
+
+
+        {/* Section: Data & Privacy Controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.5rem', marginBottom: '0.25rem' }}>Data Management & Privacy</h3>
+          <div className="glass-card" style={{ padding: '0.5rem' }}>
+            <button onClick={handleExportData} style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><span className="material-symbols-outlined" style={{ color: '#10b981' }}>download</span><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Export My Data</span></div>
+              <span className="material-symbols-outlined" style={{ color: '#64748b', fontSize: '1.2rem' }}>chevron_right</span>
+            </button>
+            <button onClick={() => setShowConfirmReset({ show: true, type: 'delete' })} style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><span className="material-symbols-outlined">person_remove</span><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Delete Account</span></div>
               <span className="material-symbols-outlined" style={{ color: '#64748b', fontSize: '1.2rem' }}>chevron_right</span>
             </button>
           </div>
-        )}
+        </div>
 
-        {/* Action: Logout */}
+        {/* Section: Reset Data Options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.2em', marginLeft: '0.5rem', marginBottom: '0.25rem' }}>Danger Zone</h3>
+          <div className="glass-card" style={{ padding: '0.5rem', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+            {['tasks', 'routines', 'stats'].map((type, index) => (
+              <button key={type} onClick={() => setShowConfirmReset({ show: true, type: type as any })} style={{ width: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', borderTop: index > 0 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}><span className="material-symbols-outlined">restart_alt</span><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Reset {type.charAt(0).toUpperCase() + type.slice(1)}</span></div>
+                <span className="material-symbols-outlined" style={{ color: '#64748b', fontSize: '1.2rem' }}>chevron_right</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Reset Confirmation Modal Info */}
+        {showConfirmReset.show && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1.5rem' }}>
+            <div className="glass-card" style={{ padding: '2rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: '#ef4444', marginBottom: '1rem' }}>warning</span>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '0.5rem', color: '#fff' }}>Are you absolutely sure?</h2>
+              <p style={{ fontSize: '0.81rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '1.5rem' }}>This action cannot be undone. All your {showConfirmReset.type} will be permanently erased.</p>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button onClick={() => setShowConfirmReset({ show: false, type: '' })} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'none', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={handleResetData} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.75rem', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Confirm</button>
+              </div>
+            </div>
+          </div>
+        )}
         <button 
           onClick={handleLogout}
           disabled={isLoggingOut}

@@ -89,24 +89,29 @@ const Feedback: React.FC = () => {
         <div className="input-group">
                 <label style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>Feedback Type</label>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  {['Feature', 'Bug', 'Other'].map(t => (
+                  {[
+                    { name: 'Feature', color: '#10b981', textColor: '#064e3b' },
+                    { name: 'Bug', color: '#ef4444', textColor: '#fff' },
+                    { name: 'Other', color: '#3b82f6', textColor: '#fff' }
+                  ].map(t => (
                     <button
-                      key={t}
+                      key={t.name}
                       type="button"
-                      onClick={() => setType(t)}
+                      onClick={() => setType(t.name)}
                       style={{
                         padding: '0.5rem 1rem',
                         borderRadius: '10px',
                         border: 'none',
-                        background: type === t ? '#10b981' : 'rgba(255,255,255,0.05)',
-                        color: type === t ? '#064e3b' : '#64748b',
+                        background: type === t.name ? t.color : 'rgba(255,255,255,0.05)',
+                        color: type === t.name ? t.textColor : '#64748b',
                         fontWeight: 900,
                         fontSize: '0.7rem',
                         textTransform: 'uppercase',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
                       }}
                     >
-                      {t}
+                      {t.name}
                     </button>
                   ))}
                 </div>
@@ -148,7 +153,14 @@ const Feedback: React.FC = () => {
               {recentFeedback.map(f => (
                 <div key={f.id} className="glass-card" style={{ padding: '1.25rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '9px', fontWeight: 900, color: '#10b981', letterSpacing: '0.1em' }}>{f.type?.toUpperCase()}</span>
+                    <span style={{ 
+                      fontSize: '9px', 
+                      fontWeight: 900, 
+                      color: f.type === 'Bug' ? '#ef4444' : f.type === 'Other' ? '#3b82f6' : '#10b981', 
+                      letterSpacing: '0.1em' 
+                    }}>
+                      {f.type?.toUpperCase()}
+                    </span>
                     <span style={{ fontSize: '9px', color: '#475569' }}>{f.created_at ? new Date(f.created_at).toLocaleDateString() : ''}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>{f.message}</p>

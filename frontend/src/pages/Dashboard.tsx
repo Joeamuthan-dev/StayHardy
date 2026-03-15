@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useNavigate } from 'react-router-dom';
+
 import BottomNav from '../components/BottomNav';
 import {
   DndContext,
@@ -94,15 +95,8 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({ task, onToggle, onD
       ref={setNodeRef}
       style={{
         ...style,
-        borderLeft: `4px solid ${task.priority === 'High' ? '#ef4444' :
-            task.priority === 'Medium' ? '#f59e0b' :
-              '#10b981'
-          }`,
-        background: task.status === 'completed' ? 'rgba(15, 15, 15, 0.3)' : (
-          task.priority === 'High' ? 'rgba(239, 68, 68, 0.08)' :
-            task.priority === 'Medium' ? 'rgba(245, 158, 11, 0.08)' :
-              'rgba(16, 185, 129, 0.08)'
-        )
+        borderLeft: `4px solid ${task.priority === 'High' ? '#ef4444' : task.priority === 'Medium' ? '#f59e0b' : '#10b981'}`,
+        // We'll use a CSS class for background to allow theme overrides
       }}
       {...attributes}
       {...listeners}
@@ -180,10 +174,7 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
       ref={setNodeRef}
       className={`priority-column ${isOver ? 'is-over' : ''}`}
       style={{
-        background: isOver ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.02)',
         transition: 'all 0.2s ease',
-        padding: '1rem',
-        borderRadius: '1.25rem'
       }}
     >
       <div className="priority-column-header">
@@ -228,22 +219,30 @@ const EmptyDashboard: React.FC<{ onAdd: () => void, type: 'welcome' | 'completed
           </span>
         </div>
       </div>
-
-      <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: '0 0 1rem 0', letterSpacing: '-0.02em' }}>
-        {isCompleted ? "All tasks completed. Great job." : "Welcome to StayHardy."}
-      </h2>
-      <p style={{ color: '#64748b', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '400px', margin: '0 0 2.5rem 0', fontWeight: 600 }}>
+      <p style={{ color: '#64748b', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '400px', margin: '0 0 1.5rem 0', fontWeight: 600 }}>
         {isCompleted 
-          ? "You cleared your focus list. Stay hungry. Stay hardy. Ready to set your next milestone?"
-          : "Start your productivity journey. Create your first task and track your productivity ill take care of that"}
+          ? "All tasks completed. Great job. You cleared your focus list. Stay hungry. Stay hardy." 
+          : "Welcome to Stay Hardy and your productive journey. Track your tasks and build consistency."}
       </p>
-
       <button
         onClick={onAdd}
-        className="glow-btn-primary"
-        style={{ padding: '0 2.5rem', height: '4rem', borderRadius: '1.5rem', fontSize: '1rem', fontWeight: 900 }}
+        className="minimal-circle-btn"
+        style={{
+          width: '3rem',
+          height: '3rem',
+          borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(255,255,255,0.02)',
+          color: 'var(--text-main)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }}
       >
-        <span>{isCompleted ? "Add Task" : "Create Your First Task"}</span>
+        <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>add</span>
       </button>
     </div>
   );
@@ -258,7 +257,7 @@ const Dashboard: React.FC = () => {
   const [category, setCategory] = useState('Business');
   const [priority, setPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
   const { t, language } = useLanguage();
-  const navigate = useNavigate();
+
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -461,6 +460,16 @@ const Dashboard: React.FC = () => {
       supabase.removeChannel(categoriesChannel);
     };
   }, [user?.id, fetchTasks, fetchCategories]);
+
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('action') === 'new-task') {
+      openModal();
+      // Clear the param
+      window.history.replaceState({}, '', location.pathname);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     setQuote(getDynamicQuote(tasks));
@@ -739,6 +748,26 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {tasks.filter(t => t.status === 'pending').length > 0 && (
+            <button
+              onClick={() => openModal()}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: '#10b981',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontWeight: 'bold' }}>add</span>
+            </button>
+          )}
           <button
             onClick={toggleSidebar}
             className="notification-btn desktop-only-btn"
@@ -754,41 +783,7 @@ const Dashboard: React.FC = () => {
             </span>
           </button>
 
-          <button
-            onClick={() => navigate('/goals')}
-            className="notification-btn"
-            title="My Goals"
-            data-tooltip="My Goals"
-            style={{ opacity: 0.8 }}
-          >
-            <span className="material-symbols-outlined">
-              track_changes
-            </span>
-          </button>
           
-          {user?.role === 'admin' && (
-            <div 
-              onClick={() => window.location.href = '/admin'}
-              style={{ 
-                width: '44px', 
-                height: '44px', 
-                borderRadius: '14px', 
-                background: '#BBFF00', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                color: '#064e3b', 
-                fontWeight: 900, 
-                cursor: 'pointer',
-                overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(187, 255, 0, 0.2)',
-                border: '2px solid rgba(255, 255, 255, 0.05)'
-              }}
-              title="Admin Dashboard"
-            >
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>shield_person</span>
-            </div>
-          )}
         </div>
       </header>
 
@@ -1022,6 +1017,45 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      <style>{`
+        .task-card {
+          background: rgba(30, 41, 59, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Light Mode Overrides for Home Page Cards */
+        .light-mode .task-card {
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 0, 0, 0.08) !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+        }
+        .light-mode .task-card:hover {
+          background: #ffffff !important;
+          border-color: rgba(16, 185, 129, 0.2) !important;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06) !important;
+        }
+        .light-mode .priority-column {
+          background: rgba(0, 0, 0, 0.02) !important;
+          border: 1px solid rgba(0, 0, 0, 0.04) !important;
+        }
+        .light-mode .priority-column.is-over {
+          background: rgba(16, 185, 129, 0.05) !important;
+        }
+        .light-mode .checkbox-custom {
+          border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        .light-mode .checkbox-custom.checked {
+          background: #10b981 !important;
+          border-color: #10b981 !important;
+        }
+        .light-mode .task-card-title.strike-through {
+          color: rgba(0, 0, 0, 0.2) !important;
+        }
+        .light-mode .task-card-note {
+          color: rgba(0, 0, 0, 0.4) !important;
+        }
+      `}</style>
     </div>
   );
 };

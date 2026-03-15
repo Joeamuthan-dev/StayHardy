@@ -13,6 +13,8 @@ import Tips from './pages/Tips';
 import Feedback from './pages/Feedback';
 import FeedbackList from './pages/FeedbackList';
 import AdminDashboard from './pages/AdminDashboard';
+import Routine from './pages/Routine';
+import HomeDashboard from './pages/HomeDashboard';
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
@@ -41,15 +43,17 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-pin" element={<ForgotPin />} />
         <Route path="/reset-pin" element={<ResetPin />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
         
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/home" element={<HomeDashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/planner" element={<Planner />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/routine" element={<Routine />} />
           <Route path="/tips" element={<Tips />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/feedback-list" element={<FeedbackList />} />

@@ -479,6 +479,12 @@ html, body {
   justify-content: flex-end;
 }
 
+.premium-modal-overlay.centered {
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1186,7 +1192,9 @@ html, body {
     left: 0;
     bottom: 0;
     width: 240px;
-    background: var(--bg-color);
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-right: 1px solid var(--border-color);
     z-index: 400;
     padding: 2rem 1rem;
