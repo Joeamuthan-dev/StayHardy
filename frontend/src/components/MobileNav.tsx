@@ -13,7 +13,8 @@ const MobileNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const menuItems = [
-    { path: '/dashboard', icon: 'home', label: t('home') },
+    { path: '/home', icon: 'dashboard', label: 'Home' },
+    { path: '/dashboard', icon: 'checklist', label: t('home') },
     { path: '/goals', icon: 'star', label: t('goals') },
     { path: '/routine', icon: 'calendar_check', label: t('routine') },
     { path: '/calendar', icon: 'calendar_month', label: 'Calendar' },
