@@ -69,8 +69,24 @@ const Login: React.FC = () => {
   }, [user, authLoading, navigate]);
 
   if (user && !authLoading) {
-    return <div style={{ height: '100vh', background: '#000000' }}></div>; // Silence frame flashes
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#020617', flexDirection: 'column', gap: '1rem' }}>
+        <div className="spinner" style={{
+          width: '40px',
+          height: '40px',
+          border: '3px solid rgba(16, 185, 129, 0.1)',
+          borderTopColor: '#10b981',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <div style={{ color: '#10b981', fontWeight: 900, fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
+          StayHard — Grinding…
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
+
 
   const [rememberMe, setRememberMe] = useState(localStorage.getItem('remembered_email') ? true : false);
 
