@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
@@ -47,7 +47,7 @@ type TimeRange = '7d' | '1m' | '3m' | '6m' | '1y';
 const Routine: React.FC = () => {
   const { user } = useAuth();
   useLanguage();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isSidebarHidden, setIsSidebarHidden] = useState(() => localStorage.getItem('sidebarHidden') === 'true');
   const [routines, setRoutines] = useState<RoutineData[]>([]);
   const [logs, setLogs] = useState<RoutineLog[]>([]);
@@ -259,8 +259,7 @@ const Routine: React.FC = () => {
 
       <header className="dashboard-header" style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-          <button onClick={() => navigate('/dashboard')} className="notification-btn"><span className="material-symbols-outlined">arrow_back</span></button>
-          <div><h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>Routines</h1><p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: '4px 0 0 0' }}>Daily discipline. High performance.</p></div>
+          <div><h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>Routines</h1><p style={{ color: '#10b981', fontSize: '0.75rem', margin: '4px 0 0 0', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Daily discipline. High performance.</p></div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button onClick={toggleSidebar} className="notification-btn desktop-only-btn" style={{ opacity: 0.5 }}><span className="material-symbols-outlined">{isSidebarHidden ? 'side_navigation' : 'fullscreen'}</span></button>

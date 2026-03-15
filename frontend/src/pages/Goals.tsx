@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
 import BottomNav from '../components/BottomNav';
-import { useNavigate, useLocation } from 'react-router-dom';
+import {  useLocation } from 'react-router-dom';
 
 import { useLanguage } from '../context/LanguageContext';
 
@@ -34,7 +34,7 @@ const motivationalQuotes = [
 const Goals: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -226,11 +226,13 @@ const Goals: React.FC = () => {
       </div>
 
       <header className="dashboard-header" style={{ marginBottom: '2.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-          <button onClick={() => navigate('/dashboard')} className="notification-btn" data-tooltip="Back to Tasks" style={{ width: '40px', height: '40px' }}>
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>{t('goals')}</h1>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', flex: 1 }}>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>{t('goals')}</h1>
+            <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em', marginTop: '0.25rem', textTransform: 'uppercase' }}>
+              Vision. Execution. Results.
+            </p>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button

@@ -233,9 +233,7 @@ const HomeDashboard: React.FC = () => {
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>
              {getTimeGreeting()}, {user?.name?.split(' ')[0] || 'User'}
           </h1>
-          <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em', marginTop: '0.25rem', textTransform: 'uppercase' }}>
-            Overview
-          </p>
+          
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button
