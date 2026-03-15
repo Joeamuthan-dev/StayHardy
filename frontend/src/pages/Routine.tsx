@@ -53,6 +53,7 @@ const Routine: React.FC = () => {
   const [logs, setLogs] = useState<RoutineLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showAllModal, setShowAllModal] = useState(false);
   
   // Statistics State
   const [activeStatCategory, setActiveStatCategory] = useState('All');
@@ -242,6 +243,16 @@ const Routine: React.FC = () => {
     } catch (err) { fetchRoutinesAndLogs(); }
   };
 
+  const handleDeleteRoutine = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this routine?')) return;
+    try {
+      const { error } = await supabase.from('routines').delete().eq('id', id);
+      if (error) throw error;
+      setRoutines(prev => prev.filter(r => r.id !== id));
+    } catch (err) { console.error('Error deleting routine:', err); }
+  };
+
+
   return (
     <div className={`page-shell routine-page ${isSidebarHidden ? 'sidebar-hidden' : ''}`}>
       <div className="aurora-bg"><div className="aurora-gradient-1"></div><div className="aurora-gradient-2"></div></div>
@@ -262,16 +273,19 @@ const Routine: React.FC = () => {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>Daily Actions</h2>
-                <button 
-                  onClick={() => setShowModal(true)} 
-                  style={{ 
-                    display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', 
-                    border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' 
-                  }}
-                >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
-                    Create Routine
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => setShowAllModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-main)', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>View All</button>
+                    <button 
+                       onClick={() => setShowModal(true)} 
+                       style={{ 
+                         display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', 
+                         border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' 
+                       }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
+                        Create Routine
+                    </button>
+                </div>
             </div>
             
             {showEncouragement && (
@@ -436,6 +450,28 @@ const Routine: React.FC = () => {
           </div>
         </div>
       )}
+{showAllModal && (
+  <div onClick={() => setShowAllModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+    <div onClick={e => e.stopPropagation()} style={{ background: '#040914', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1.5rem', width: '100%', maxWidth: '400px', padding: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'white' }}>Manage Routines</h3>
+        <button onClick={() => setShowAllModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><span className="material-symbols-outlined">close</span></button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+        {routines.map(r => (
+          <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${r.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: r.color || '#10b981' }}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{r.icon || 'fitness_center'}</span></div>
+              <div><div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'white' }}>{r.title}</div><div style={{ fontSize: '0.6rem', color: '#64748b' }}>{r.category}</div></div>
+            </div>
+            <button onClick={() => handleDeleteRoutine(r.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}><span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span></button>
+          </div>
+        ))}
+        {routines.length === 0 && <div style={{ textAlign: 'center', padding: '1rem', color: '#64748b', fontSize: '0.8rem' }}>No routines created yet.</div>}
+      </div>
+    </div>
+  </div>
+)}
       <BottomNav isHidden={isSidebarHidden} />
       <style>{`
         .routine-page { padding-bottom: 8rem; }
