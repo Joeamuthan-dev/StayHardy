@@ -256,7 +256,7 @@ const Dashboard: React.FC = () => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Business');
   const [priority, setPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -706,12 +706,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const getTimeGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return language === 'Tamil' ? 'காலை வணக்கம்' : 'Good Morning';
-    if (hour < 18) return language === 'Tamil' ? 'மதிய வணக்கம்' : 'Good Afternoon';
-    return language === 'Tamil' ? 'மாலை வணக்கம்' : 'Good Evening';
-  };
+  /* getTimeGreeting Deleted */
 
   const defaultCategories = ['Personal', 'Content', 'Health', 'Business'];
   const categories = Array.from(new Set([...defaultCategories, ...customCategories, ...tasks.map(t => t.category)]));
@@ -740,9 +735,7 @@ const Dashboard: React.FC = () => {
 
       <header className="dashboard-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>
-            {getTimeGreeting()}, {user?.name?.split(' ')[0] || 'User'}
-          </h1>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>{t('home')}</h1>
           <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em', marginTop: '0.25rem', textTransform: 'uppercase' }}>
             {quote}
           </p>

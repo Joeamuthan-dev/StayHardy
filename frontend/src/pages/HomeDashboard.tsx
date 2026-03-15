@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import BottomNav from '../components/BottomNav';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '../supabase';
@@ -35,6 +36,13 @@ interface Goal {
 }
 
 const HomeDashboard: React.FC = () => {
+  const { language } = useLanguage();
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return language === 'Tamil' ? 'காலை வணக்கம்' : 'Good Morning';
+    if (hour < 18) return language === 'Tamil' ? 'மதிய வணக்கம்' : 'Good Afternoon';
+    return language === 'Tamil' ? 'மாலை வணக்கம்' : 'Good Evening';
+  };
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -221,10 +229,10 @@ const HomeDashboard: React.FC = () => {
       <header className="dashboard-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>
-             Overview
+             {getTimeGreeting()}, {user?.name?.split(' ')[0] || 'User'}
           </h1>
           <p style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em', marginTop: '0.25rem', textTransform: 'uppercase' }}>
-            Stay Hard, {user?.name?.split(' ')[0] || 'User'}
+            Overview
           </p>
         </div>
       </header>
