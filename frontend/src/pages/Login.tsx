@@ -4,6 +4,8 @@ import gsap from 'gsap';
 import { supabase } from '../supabase';
 
 
+import { useAuth } from '../context/AuthContext';
+
 const TreeGraphic = ({ isBloomed }: { isBloomed: boolean }) => {
   return (
     <div className="tree-image-container" style={{ 
@@ -46,6 +48,7 @@ const TreeGraphic = ({ isBloomed }: { isBloomed: boolean }) => {
 };
 
 const Login: React.FC = () => {
+  const { user, loading: authLoading } = useAuth(); // Connect useAuth
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,9 +56,22 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [isPulled, setIsPulled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // New State
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const navigate = useNavigate();
+
+  // Redirect instantly if user is already logged in
+  React.useEffect(() => {
+    if (user && !authLoading) {
+      if (user.role === 'admin') navigate('/admin', { replace: true });
+      else navigate('/home', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
+  if (user && !authLoading) {
+    return <div style={{ height: '100vh', background: '#000000' }}></div>; // Silence frame flashes
+  }
+
   const [rememberMe, setRememberMe] = useState(localStorage.getItem('remembered_email') ? true : false);
 
   const [loginQuote, setLoginQuote] = useState('');
