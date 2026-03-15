@@ -491,7 +491,9 @@ const Settings: React.FC = () => {
           
           <div className="glass-card" style={{ padding: '1.5rem', border: '1px solid var(--glass-border)', color: 'var(--text-main)' }}>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Stay Hardy started as a personal tool to help me stay disciplined and consistent with my daily goals. Instead of juggling multiple apps, I built one system where tasks, goals, and routines work together to measure real productivity and progress.
+              Stay Hardy started as a personal project to help me stay consistent with my goals, tasks, and daily routines.
+I wanted a simple system to track progress, build discipline, and stay productive without distractions.
+Today, Stay Hardy brings tasks, goals, and routines together in one place to help users stay focused and measure their real productivity.
             </p>
             
             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
