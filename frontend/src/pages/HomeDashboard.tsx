@@ -53,6 +53,33 @@ const HomeDashboard: React.FC = () => {
   const [routineLogs, setRoutineLogs] = useState<RoutineLog[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
 
+  // ── Reminders from Calendar (localStorage) ──
+  const upcomingReminders = useMemo(() => {
+    try {
+      const key = `reminders_${user?.id || 'guest'}`;
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      const all: { id: string; date: string; title: string }[] = JSON.parse(stored);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const todayStr = now.toISOString().split('T')[0];
+      const plusThree = new Date(now); plusThree.setDate(plusThree.getDate() + 3);
+      const limitStr = plusThree.toISOString().split('T')[0];
+      return all
+        .filter(r => r.date >= todayStr && r.date <= limitStr)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    } catch { return []; }
+  }, [user?.id]);
+
+  const getDueLabel = (dateStr: string) => {
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const rem = new Date(dateStr + 'T00:00:00'); rem.setHours(0, 0, 0, 0);
+    const diff = Math.round((rem.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+    return `In ${diff} days`;
+  };
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -315,6 +342,31 @@ const HomeDashboard: React.FC = () => {
               <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>No pending tasks found.</div>
             )}
           </div>
+
+          {/* ── Upcoming Reminders ── */}
+          {upcomingReminders.length > 0 && (
+            <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>Upcoming Reminders</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {upcomingReminders.map(r => (
+                  <div
+                    key={r.id}
+                    onClick={() => navigate('/calendar')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '0.75rem', padding: '0.6rem 0.875rem', cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: '#ef4444', flexShrink: 0 }}>event</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</div>
+                    </div>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', background: 'rgba(239,68,68,0.12)', borderRadius: '6px', padding: '2px 7px', flexShrink: 0 }}>{getDueLabel(r.date)}</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '0.9rem', color: '#64748b', flexShrink: 0 }}>chevron_right</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '1rem' }}>
             <button onClick={() => navigate('/dashboard?action=new-task')} className="shortcut-btn" data-label="Add Task" style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', cursor: 'pointer', transition: 'background 0.2s' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', color: '#10b981' }}>add_task</span>
