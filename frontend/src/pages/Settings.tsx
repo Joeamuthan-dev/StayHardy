@@ -55,12 +55,12 @@ const Settings: React.FC = () => {
     if (!user?.id || !showConfirmReset.type) return;
     try {
       if (showConfirmReset.type === 'tasks') { await supabase.from('tasks').delete().eq('userId', user.id); }
-      else if (showConfirmReset.type === 'routines') { await supabase.from('routines').delete().eq('userId', user.id); }
-      else if (showConfirmReset.type === 'stats') { await supabase.from('routine_logs').delete().eq('userId', user.id); }
+      else if (showConfirmReset.type === 'routines') { await supabase.from('routines').delete().eq('user_id', user.id); }
+      else if (showConfirmReset.type === 'stats') { await supabase.from('routine_logs').delete().eq('user_id', user.id); }
       else if (showConfirmReset.type === 'delete') {
          await supabase.from('tasks').delete().eq('userId', user.id); await supabase.from('goals').delete().eq('userId', user.id);
          await supabase.from('routines').delete().eq('userId', user.id); await supabase.from('routine_logs').delete().eq('userId', user.id);
-         await supabase.from('feedback').delete().eq('userId', user.id); await supabase.from('users').delete().eq('id', user.id);
+         await supabase.from('feedback').delete().eq('user_id', user.id); await supabase.from('users').delete().eq('id', user.id);
          await logout(); navigate('/login'); return;
       }
       alert('Action completed successfully!');
