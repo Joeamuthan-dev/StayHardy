@@ -39,7 +39,7 @@ const ROUTINE_ICONS = [
   // Gym & Fitness
   'fitness_center', 'directions_run', 'sports_gymnastics', 'exercise', 'sports_martial_arts',
   // Yoga & Mindfulness
-  'self_improvement', 'spa', 'emoji_nature', 'meditation',
+  'self_improvement', 'spa', 'emoji_nature',
   // Work & Job
   'work', 'laptop_mac', 'business_center', 'schedule', 'task_alt',
   // Content & Video
