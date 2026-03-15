@@ -568,7 +568,7 @@ const Stats: React.FC = () => {
              <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>The Verdict</span>
           </div>
           <p style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-            "Tasks: {taskCompletionRate}%, Routines: {Math.round(todayRoutineRate)}%, Goals: {avgGoalProgress}%. {verdict}"
+            "{verdict}"
           </p>
         </div>
 
