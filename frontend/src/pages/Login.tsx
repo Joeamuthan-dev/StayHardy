@@ -63,10 +63,11 @@ const Login: React.FC = () => {
   // Redirect instantly if user is already logged in
   React.useEffect(() => {
     if (user && !authLoading) {
-      if (user.role === 'admin') navigate('/admin', { replace: true });
-      else navigate('/home', { replace: true });
+      if (user.role === 'admin') window.location.href = '/admin';
+      else window.location.href = '/home';
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading]);
+
 
   if (user && !authLoading) {
     return (
@@ -231,9 +232,9 @@ const Login: React.FC = () => {
 
         const role = email.toLowerCase().trim() === 'joe@gmail.com' ? 'admin' : 'user';
         if (role === 'admin') {
-          navigate('/admin');
+          window.location.href = '/admin';
         } else {
-          navigate('/home');
+          window.location.href = '/home';
         }
       } else {
         const { data, error: signUpError } = await supabase.auth.signUp({
@@ -262,7 +263,7 @@ const Login: React.FC = () => {
         }
 
         if (data.session) {
-          navigate('/home');
+          window.location.href = '/home';
         } else {
           setError('Signup successful! Please check your email to confirm your account and then Log In.');
           setIsLogin(true); // Switch to login view
