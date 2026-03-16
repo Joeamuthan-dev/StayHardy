@@ -181,8 +181,8 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
         transition: 'all 0.2s ease',
       }}
     >
-      <div className="priority-column-header">
-        <div className="priority-column-title" style={{ color: 'var(--text-main)' }}>
+      <div className="priority-column-header" style={{ justifyContent: 'flex-start', gap: '0.75rem', paddingBottom: '0.75rem' }}>
+        <div className="priority-column-title" style={{ color: 'var(--text-main)', fontSize: '0.7rem' }}>
           <span className="material-symbols-outlined" style={{
             fontSize: '1rem',
             color: id === 'High' ? '#ef4444' : id === 'Medium' ? '#fbbf24' : '#10b981'
@@ -191,10 +191,24 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
           </span>
           {title}
         </div>
-        <span className="column-count">{tasks.length}</span>
+        <span 
+          className="column-count"
+          style={{
+            background: id === 'High' ? 'rgba(239, 68, 68, 0.1)' : id === 'Medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+            color: id === 'High' ? '#ef4444' : id === 'Medium' ? '#f59e0b' : '#10b981',
+            padding: '0.3rem 0.6rem',
+            borderRadius: '2rem',
+            fontSize: '0.8rem', // 0.8rem is larger than 0.7rem title text!
+            fontWeight: 900,
+            border: `1px solid ${id === 'High' ? 'rgba(239, 68, 68, 0.15)' : id === 'Medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'}`
+          }}
+        >
+          {tasks.length}
+        </span>
       </div>
 
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+
         <div 
           className="task-grid" 
           style={{ 
@@ -821,11 +835,13 @@ const Dashboard: React.FC = () => {
                   <div key={prio} className="priority-column-wrapper" data-priority={prio}>
                     <DroppableColumn
                       id={prio}
-                      title={`${prio} Priority`}
+                      title={prio === 'High' ? 'Game Changer' : prio === 'Medium' ? 'Important' : 'Later'}
                       tasks={filteredTasks.sort((a, b) => (a.order_index || 0) - (b.order_index || 0))}
                       onToggle={toggleTaskStatus}
                       onEdit={(task) => setDetailTask(task)}
                     />
+ stream.
+
 
 
 
@@ -1064,7 +1080,7 @@ const Dashboard: React.FC = () => {
                       textTransform: 'uppercase'
                     }}
                   >
-                    {detailTask.priority} Priority
+                    {detailTask.priority === 'High' ? 'Game Changer' : detailTask.priority === 'Medium' ? 'Important' : 'Later'}
                   </span>
                 </div>
               </div>
