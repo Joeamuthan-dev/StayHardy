@@ -268,12 +268,52 @@ const Routine: React.FC = () => {
     if (!user?.id) return;
     const today = new Date().toISOString().split('T')[0];
     const isNowCompleted = !routine.completed;
-    setRoutines(prev => prev.map(r => r.id === routine.id ? { ...r, completed: isNowCompleted } : r));
+
+    // 1. Optimistically update routines state for instant UI feedback
+    setRoutines(prev => prev.map(r => 
+      r.id === routine.id ? { ...r, completed: isNowCompleted } : r
+    ));
+
+    // 2. Optimistically update logs state to keep charts in sync without a reload
+    if (isNowCompleted) {
+      setLogs(prev => {
+        const exists = prev.find(l => l.routine_id === routine.id && l.completed_at === today);
+        if (exists) return prev;
+        return [...prev, { routine_id: routine.id, completed_at: today }];
+      });
+    } else {
+      setLogs(prev => prev.filter(l => !(l.routine_id === routine.id && l.completed_at === today)));
+    }
+
     try {
-      if (isNowCompleted) await supabase.from('routine_logs').insert([{ routine_id: routine.id, user_id: user.id, completed_at: today }]);
-      else await supabase.from('routine_logs').delete().eq('routine_id', routine.id).eq('completed_at', today);
-      fetchRoutinesAndLogs();
-    } catch (err) { fetchRoutinesAndLogs(); }
+      if (isNowCompleted) {
+        const { error } = await supabase.from('routine_logs').insert([{ 
+          routine_id: routine.id, 
+          user_id: user.id, 
+          completed_at: today 
+        }]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('routine_logs')
+          .delete()
+          .eq('routine_id', routine.id)
+          .eq('user_id', user.id)
+          .eq('completed_at', today);
+        if (error) throw error;
+      }
+      // Note: Removed fetchRoutinesAndLogs() to prevent full list re-render/Syncing state
+    } catch (err) {
+      console.error('Failed to sync routine status:', err);
+      // Revert state on failure
+      setRoutines(prev => prev.map(r => 
+        r.id === routine.id ? { ...r, completed: !isNowCompleted } : r
+      ));
+      if (isNowCompleted) {
+        setLogs(prev => prev.filter(l => !(l.routine_id === routine.id && l.completed_at === today)));
+      } else {
+        setLogs(prev => [...prev, { routine_id: routine.id, completed_at: today }]);
+      }
+    }
   };
 
   const handleDeleteRoutine = async (id: string) => {
@@ -750,6 +790,25 @@ const Routine: React.FC = () => {
           box-shadow: 0 0 8px #10b981;
         }
         .physical-toggle.active .toggle-bg-icons { opacity: 0.6; }
+        .physical-toggle.active .check {
+          animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes checkPop {
+          0% { transform: scale(0); opacity: 0; }
+          70% { transform: scale(1.3); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .physical-toggle:active .toggle-knob {
+          transform: scale(0.85);
+        }
+        .routine-card-new.completed {
+          animation: cardPop 0.4s ease-out;
+        }
+        @keyframes cardPop {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.01); }
+          100% { transform: scale(1); }
+        }
         
         @media (max-width: 1024px) { .routine-content-grid { grid-template-columns: 1fr !important; } }
       `}</style>
