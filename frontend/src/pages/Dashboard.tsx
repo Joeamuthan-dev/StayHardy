@@ -840,12 +840,6 @@ const Dashboard: React.FC = () => {
                       onToggle={toggleTaskStatus}
                       onEdit={(task) => setDetailTask(task)}
                     />
- stream.
-
-
-
-
-
                   </div>
                 );
               })}
