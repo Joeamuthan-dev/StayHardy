@@ -109,7 +109,7 @@ const WhyStayHardyModal: React.FC<WhyStayHardyModalProps> = ({ isOpen, onClose, 
               className="developer-card-link"
             >
               <img 
-                src="https://tiavhmbpplerffdjmodw.supabase.co/storage/v1/object/public/avatars/admin.PNG" 
+                src="https://tiavhmbpplerffdjmodw.supabase.co/storage/v1/object/public/avatars/B7DB02BF-B1EE-4934-A5C0-6F45F22D9F70.JPG" 
                 alt="Joe Amuthan" 
                 className="developer-avatar"
               />
