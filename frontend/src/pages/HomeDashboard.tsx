@@ -249,6 +249,88 @@ const HomeDashboard: React.FC = () => {
           .shortcut-btn { position: relative; }
           .shortcut-btn:active::after { content: attr(data-label); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #0b0f19; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; white-space: nowrap; z-index: 100; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         }
+
+        .today-focus-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1rem;
+        }
+        @media (max-width: 600px) {
+          .today-focus-grid { grid-template-columns: 1fr; }
+        }
+
+        .focus-tile {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: #000000 !important;
+          padding: 1rem;
+          border-radius: 1.25rem;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+          position: relative;
+        }
+        .focus-tile:hover {
+          transform: translateY(-4px) scale(1.02);
+          background: #050508 !important;
+        }
+
+        /* Border Glow Accents */
+        .tasks-tile { border-color: rgba(59, 130, 246, 0.2); }
+        .tasks-tile:hover { 
+          border-color: rgba(59, 130, 246, 0.6); 
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); 
+        }
+        .routine-tile { border-color: rgba(168, 85, 247, 0.2); }
+        .routine-tile:hover { 
+          border-color: rgba(168, 85, 247, 0.6); 
+          box-shadow: 0 0 20px rgba(168, 85, 247, 0.15); 
+        }
+        .goals-tile { border-color: rgba(245, 158, 11, 0.2); }
+        .goals-tile:hover { 
+          border-color: rgba(245, 158, 11, 0.6); 
+          box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); 
+        }
+
+        .focus-icon-bg {
+          width: 44px;
+          height: 44px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: transform 0.3s ease;
+        }
+        .focus-tile:hover .focus-icon-bg {
+          transform: scale(1.1) rotate(5deg);
+        }
+
+        .tasks-tile .focus-icon-bg { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .routine-tile .focus-icon-bg { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        .goals-tile .focus-icon-bg { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+        .focus-icon-bg .material-symbols-outlined {
+          font-size: 1.5rem;
+          font-variation-settings: 'FILL' 1;
+        }
+
+        .focus-content { text-align: left; }
+        .focus-value {
+          font-size: 1.5rem;
+          font-weight: 900;
+          color: #ffffff;
+          line-height: 1;
+        }
+        .focus-label {
+          font-size: 0.6rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          color: #94a3b8;
+          letter-spacing: 0.1em;
+          margin-top: 0.3rem;
+        }
       `}</style>
       <div className="aurora-bg">
         <div className="aurora-gradient-1"></div>
@@ -305,20 +387,38 @@ const HomeDashboard: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-main)' }}>Today's Focus</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem 0.5rem', borderRadius: '1rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#3b82f6' }}>{pendingTasks.length}</div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Tasks</div>
+          <div className="today-focus-grid" style={{ marginBottom: '1.5rem' }}>
+            <div className="focus-tile tasks-tile" onClick={() => navigate('/dashboard')}>
+              <div className="focus-icon-bg">
+                <span className="material-symbols-outlined">check_circle</span>
+              </div>
+              <div className="focus-content">
+                <div className="focus-value" style={{ color: '#ffffff' }}>{pendingTasks.length}</div>
+                <div className="focus-label">Tasks</div>
+              </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem 0.5rem', borderRadius: '1rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{completedRoutinesToday}/{activeRoutinesTodayCount}</div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Routine</div>
+
+            <div className="focus-tile routine-tile" onClick={() => navigate('/routine')}>
+              <div className="focus-icon-bg">
+                <span className="material-symbols-outlined">calendar_check</span>
+              </div>
+              <div className="focus-content">
+                <div className="focus-value" style={{ color: '#ffffff' }}>{completedRoutinesToday}/{activeRoutinesTodayCount}</div>
+                <div className="focus-label">Routine</div>
+              </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem 0.5rem', borderRadius: '1rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f59e0b' }}>{activeGoals.length}</div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Goals</div>
+
+            <div className="focus-tile goals-tile" onClick={() => navigate('/goals')}>
+              <div className="focus-icon-bg">
+                <span className="material-symbols-outlined">flag</span>
+              </div>
+              <div className="focus-content">
+                <div className="focus-value" style={{ color: '#ffffff' }}>{activeGoals.length}</div>
+                <div className="focus-label">Goals</div>
+              </div>
             </div>
           </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
             {topPendingTasks.length > 0 ? topPendingTasks.map(t => (
               <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.02)', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
