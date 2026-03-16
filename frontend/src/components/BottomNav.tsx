@@ -34,7 +34,7 @@ const BottomNav: React.FC<{ isHidden?: boolean }> = ({ isHidden }) => {
       <MobileNav />
 
       {/* ── Mobile & Desktop Home bottom nav (Floating Shelf Design) ── */}
-      {(location.pathname !== '/settings' || location.pathname === '/home') && (
+      {(location.pathname !== '/settings') && (
         <div className={`floating-shortcuts-bar ${location.pathname === '/home' ? 'desktop-home-visible' : ''}`}>
           <button 
             onClick={() => navigate('/dashboard')} 
