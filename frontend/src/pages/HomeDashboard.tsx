@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import BottomNav from '../components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -108,7 +108,24 @@ const HomeDashboard: React.FC = () => {
     const pA = a.priority === 'High' ? 3 : a.priority === 'Medium' ? 2 : 1;
     const pB = b.priority === 'High' ? 3 : b.priority === 'Medium' ? 2 : 1;
     return pB - pA;
-  }).slice(0, 3);
+  }).slice(0, 4);
+
+  const upcomingReminders = useMemo(() => {
+    try {
+      const key = `reminders_${user?.id || 'guest'}`;
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      const all: { id: string; date: string; title: string }[] = JSON.parse(stored);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const todayStr = now.toISOString().split('T')[0];
+      const limit = new Date(now); limit.setDate(limit.getDate() + 3);
+      const limitStr = limit.toISOString().split('T')[0];
+      return all
+        .filter(r => r.date >= todayStr && r.date <= limitStr)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    } catch { return []; }
+  }, [user?.id]);
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const todayDate = new Date();
@@ -316,7 +333,7 @@ const HomeDashboard: React.FC = () => {
           backdrop-filter: blur(20px) saturate(160%);
           border-radius: 1.5rem;
           padding: 1.5rem;
-          margin-bottom: 1.25rem;
+          margin-bottom: 0.75rem;
           position: relative;
           overflow: hidden;
         }
@@ -444,7 +461,7 @@ const HomeDashboard: React.FC = () => {
         </div>
       </header>
 
-      <main style={{ paddingBottom: '6rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 0.5rem' }}>
+      <main style={{ paddingBottom: '6rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0 0.5rem' }}>
         
         {/* 1. Today's Focus Outer Neon Box */}
         <div className="neon-box">
@@ -485,46 +502,67 @@ const HomeDashboard: React.FC = () => {
           </div>
 
           {/* Inner Tasks List Row inside container box row frame */}
-          <div className="inner-tasks-grid" style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+          <div className="inner-tasks-grid" style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
             {topPendingTasks.length > 0 ? topPendingTasks.map(t => (
-              <div key={t.id} className="inner-task-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '0.875rem 1rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer' }} onClick={() => handleCompleteTask(t.id)}>
-                <div style={{ width: '1.2rem', height: '1.2rem', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)' }}></div>
-                <div style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-                <span style={{ fontSize: '0.65rem', fontWeight: 900, background: t.priority === 'High' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', color: t.priority === 'High' ? '#ef4444' : '#f59e0b', padding: '0.2rem 0.6rem', borderRadius: '0.6rem' }}>{t.priority}</span>
+              <div key={t.id} className="inner-task-row" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', background: 'rgba(255,255,255,0.02)', padding: '0.75rem 0.85rem', borderRadius: '0.85rem', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer' }} onClick={() => handleCompleteTask(t.id)}>
+                <div style={{ width: '1.1rem', height: '1.1rem', borderRadius: '50%', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                  <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', background: 'transparent' }}></div>
+                </div>
+                <div style={{ flex: 1, fontSize: '0.8rem', fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                <span style={{ fontSize: '0.6rem', fontWeight: 900, background: t.priority === 'High' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', color: t.priority === 'High' ? '#ef4444' : '#f59e0b', padding: '0.15rem 0.5rem', borderRadius: '0.5rem' }}>{t.priority}</span>
               </div>
-            )) : <div style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'center', gridColumn: 'span 2', padding: '1rem' }}>No pending actions today.</div>}
+            )) : <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', gridColumn: 'span 2', padding: '0.75rem' }}>No pending actions today.</div>}
+
+            {/* Upcoming Reminders Hook below task list setup grid frame */}
+            {upcomingReminders.length > 0 && (
+              <div style={{ gridColumn: 'span 2', marginTop: '0.4rem', paddingTop: '0.6rem', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Upcoming Reminders (3 Days)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                  {upcomingReminders.map((r, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#e2e8f0', background: 'rgba(255,255,255,0.01)', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.01)' }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%', fontWeight: 700 }}>{r.title}</span>
+                      <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800 }}>{r.date.split('-').slice(1).join('/')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 2. Routine Snapshot Neon Box */}
+        {/* 2. Today Routine Neon Box */}
         <div className="neon-box">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', color: '#ffffff', letterSpacing: '0.05em' }}>Routine Snapshot</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', color: '#ffffff', letterSpacing: '0.05em' }}>Today Routine</h2>
             <button onClick={() => navigate('/routine')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '0.75rem', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' }}>View Routine</button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-            <div className="neon-inner-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.01)', padding: '1rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)' }}>
-              <div style={{ position: 'relative', width: '42px', height: '42px', flexShrink: 0 }}>
-                <svg width="42" height="42" viewBox="0 0 42 42">
-                  <circle cx="21" cy="21" r="16" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="3"></circle>
-                  <circle cx="21" cy="21" r="16" fill="transparent" stroke="#10b981" strokeWidth="3" strokeDasharray={`${activeRoutinesTodayCount > 0 ? ((completedRoutinesToday || 0) / activeRoutinesTodayCount) * 100 : 0} ${100 - (activeRoutinesTodayCount > 0 ? ((completedRoutinesToday || 0) / activeRoutinesTodayCount) * 100 : 0)}`} strokeDashoffset="25" strokeLinecap="round" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+            <div className="neon-inner-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.01)', padding: '0.85rem 1rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)' }}>
+              <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="transparent" stroke="rgba(255,255,255,0.04)" strokeWidth="3"></circle>
+                  <circle cx="20" cy="20" r="15" fill="transparent" stroke="#10b981" strokeWidth="3" strokeDasharray={`${activeRoutinesTodayCount > 0 ? ((completedRoutinesToday || 0) / activeRoutinesTodayCount) * 100 : 0} ${100 - (activeRoutinesTodayCount > 0 ? ((completedRoutinesToday || 0) / activeRoutinesTodayCount) * 100 : 0)}`} strokeDashoffset="22" strokeLinecap="round" />
                 </svg>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '1.1rem', color: '#10b981', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span className="material-symbols-outlined" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '1rem', color: '#10b981', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               </div>
               <div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffffff' }}>Completed: {completedRoutinesToday}</div>
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.1rem' }}>Created: {activeRoutinesTodayCount}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                   Completed ✓ : {completedRoutinesToday}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                   Pending ✕ : {Math.max(0, activeRoutinesTodayCount - completedRoutinesToday)}
+                </div>
               </div>
             </div>
 
-            <div className="neon-inner-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.01)', padding: '1rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)' }}>
-              <div style={{ width: '42px', height: '42px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+            <div className="neon-inner-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.01)', padding: '0.85rem 1rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)' }}>
+              <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
               </div>
               <div>
-                <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#f87171' }}>{currentStreak}-Day Streak</div>
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.1rem' }}>Keep it going! 🔥</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>{currentStreak} Day Streak</div>
+                <div style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 700, marginTop: '0.1rem' }}>Keep it going! 🔥</div>
               </div>
             </div>
           </div>
