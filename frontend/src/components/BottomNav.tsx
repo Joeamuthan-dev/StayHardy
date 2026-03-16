@@ -4,12 +4,14 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 import MobileNav from './MobileNav';
+import WhyStayHardyModal from './WhyStayHardyModal';
 
 const BottomNav: React.FC<{ isHidden?: boolean }> = ({ isHidden }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
   const { logout, user } = useAuth();
+  const [isIntroOpen, setIsIntroOpen] = React.useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -96,6 +98,14 @@ const BottomNav: React.FC<{ isHidden?: boolean }> = ({ isHidden }) => {
           </nav>
 
           <div className="sidebar-logout-container">
+            <button 
+              className="sidebar-nav-item" 
+              style={{ marginBottom: '0.5rem', width: '100%', border: 'none', background: 'transparent' }}
+              onClick={() => setIsIntroOpen(true)}
+            >
+              <span className="material-symbols-outlined">help_outline</span>
+              <span>Why Stay Hardy?</span>
+            </button>
             <button onClick={() => logout()} className="sidebar-logout-btn">
               <span className="material-symbols-outlined">logout</span>
               <span>Sign Out</span>
@@ -103,6 +113,16 @@ const BottomNav: React.FC<{ isHidden?: boolean }> = ({ isHidden }) => {
           </div>
         </aside>
       )}
+
+      <WhyStayHardyModal 
+        isOpen={isIntroOpen} 
+        onClose={() => setIsIntroOpen(false)} 
+      />
+      
+      {/* Expose trigger to MobileNav via window for simplicity in this architecture */}
+      {React.useEffect(() => {
+        (window as any).showStayHardyIntro = () => setIsIntroOpen(true);
+      }, [])}
     </>
   );
 };

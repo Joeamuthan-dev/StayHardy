@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
 import { calculateProductivityScore } from '../utils/productivity';
+import WhyStayHardyModal from '../components/WhyStayHardyModal';
 
 interface Task {
   id: string;
@@ -53,6 +54,8 @@ const HomeDashboard: React.FC = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routineLogs, setRoutineLogs] = useState<RoutineLog[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [isIntroOpen, setIsIntroOpen] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(false);
 
 
 
@@ -97,7 +100,21 @@ const HomeDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // First-time intro logic
+    const hasSeenIntro = localStorage.getItem('has_seen_stay_hardy_intro');
+    if (!hasSeenIntro) {
+      setTimeout(() => {
+        setIsFirstTime(true);
+        setIsIntroOpen(true);
+      }, 1500); // Slight delay for better entrance
+    }
   }, [fetchData]);
+
+  const handleCloseIntro = () => {
+    setIsIntroOpen(false);
+    localStorage.setItem('has_seen_stay_hardy_intro', 'true');
+  };
   
   // Automatic Daily Reset Check at Midnight
   useEffect(() => {
@@ -807,6 +824,11 @@ const HomeDashboard: React.FC = () => {
 
       </main>
       <BottomNav isHidden={isSidebarHidden} />
+      <WhyStayHardyModal 
+        isOpen={isIntroOpen} 
+        onClose={handleCloseIntro} 
+        isFirstTime={isFirstTime}
+      />
     </div>
   );
 };

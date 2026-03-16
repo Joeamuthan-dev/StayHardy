@@ -67,6 +67,18 @@ const MobileNav: React.FC = () => {
               <span>{item.label}</span>
             </button>
           ))}
+          <button
+            className="drawer-nav-item"
+            onClick={() => {
+              setIsOpen(false);
+              if ((window as any).showStayHardyIntro) {
+                (window as any).showStayHardyIntro();
+              }
+            }}
+          >
+            <span className="material-symbols-outlined">help_outline</span>
+            <span>Why Stay Hardy?</span>
+          </button>
         </nav>
 
         <div className="drawer-footer">
