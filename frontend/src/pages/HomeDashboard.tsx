@@ -505,8 +505,8 @@ const HomeDashboard: React.FC = () => {
           <div className="inner-tasks-grid" style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
             {topPendingTasks.length > 0 ? topPendingTasks.map(t => (
               <div key={t.id} className="inner-task-row" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', background: 'rgba(255,255,255,0.02)', padding: '0.75rem 0.85rem', borderRadius: '0.85rem', border: '1px solid rgba(255,255,255,0.03)', cursor: 'pointer' }} onClick={() => handleCompleteTask(t.id)}>
-                <div style={{ width: '1.1rem', height: '1.1rem', borderRadius: '50%', border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                  <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', background: 'transparent' }}></div>
+                <div onClick={(e) => { e.stopPropagation(); handleCompleteTask(t.id); }} style={{ width: '1.2rem', height: '1.2rem', borderRadius: '50%', border: '2.2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '0.75rem', color: '#10b981', fontVariationSettings: "'wght' 700" }}>check</span>
                 </div>
                 <div style={{ flex: 1, fontSize: '0.8rem', fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
                 <span style={{ fontSize: '0.6rem', fontWeight: 900, background: t.priority === 'High' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', color: t.priority === 'High' ? '#ef4444' : '#f59e0b', padding: '0.15rem 0.5rem', borderRadius: '0.5rem' }}>{t.priority}</span>
@@ -547,11 +547,11 @@ const HomeDashboard: React.FC = () => {
                 <span className="material-symbols-outlined" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '1rem', color: '#10b981', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                   Completed ✓ : {completedRoutinesToday}
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                   <span style={{ color: '#10b981', fontWeight: 900, fontSize: '1rem' }}>✓</span> Completed: {completedRoutinesToday}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                   Pending ✕ : {Math.max(0, activeRoutinesTodayCount - completedRoutinesToday)}
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                   <span style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.9rem' }}>✕</span> Pending: {Math.max(0, activeRoutinesTodayCount - completedRoutinesToday)}
                 </div>
               </div>
             </div>
@@ -590,14 +590,24 @@ const HomeDashboard: React.FC = () => {
                }
 
                return (
-                  <div key={goal.id} className="neon-inner-card goal-card-inner" onClick={() => navigate('/goals')} style={{ padding: '1rem', background: 'rgba(255,255,255,0.01)', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)', cursor: 'pointer' }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.35rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{goal.name}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.65rem', color: isOverdue ? '#ef4444' : '#00f2fe', fontWeight: 800, marginBottom: '0.6rem' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.75rem' }}>schedule</span>
-                      {daysLeftStr}
+                  <div key={goal.id} className="neon-inner-card goal-card-inner" onClick={() => navigate('/goals')} style={{ padding: '0.85rem', background: 'rgba(255,255,255,0.01)', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.02)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '28px', height: '28px', background: 'rgba(0, 242, 254, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00f2fe', flexShrink: 0 }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1rem', fontVariationSettings: "'FILL' 1" }}>track_changes</span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{goal.name}</div>
                     </div>
+
                     <div style={{ height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${goal.progress || 0}%`, height: '100%', background: 'linear-gradient(90deg, #00f2fe, #a855f7)', borderRadius: '3px' }}></div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
+                      <div style={{ color: '#00f2fe', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '0.75rem' }}>schedule</span>
+                        {daysLeftStr}
+                      </div>
+                      <div style={{ color: '#94a3b8', fontWeight: 900 }}>{goal.progress || 0}%</div>
                     </div>
                   </div>
                );
