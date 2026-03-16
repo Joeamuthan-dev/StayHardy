@@ -164,10 +164,12 @@ interface DroppableColumnProps {
   onToggle: (task: Task) => void;
   onDelete: (id: string) => void;
   onEdit: (task: Task) => void;
+  isSidebarHidden: boolean;
 }
 
-const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onToggle, onDelete, onEdit }) => {
+const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onToggle, onDelete, onEdit, isSidebarHidden }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
+
 
   return (
     <div
@@ -191,7 +193,14 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
       </div>
 
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="task-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+        <div 
+          className="task-grid" 
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isSidebarHidden && tasks.length > 1 ? 'repeat(2, 1fr)' : '1fr', 
+            gap: '1rem' 
+          }}
+        >
           {tasks.map(task => (
             <SortableTaskItem
               key={task.id}
@@ -203,6 +212,7 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
           ))}
         </div>
       </SortableContext>
+
     </div>
   );
 };
@@ -812,7 +822,9 @@ const Dashboard: React.FC = () => {
                       onToggle={toggleTaskStatus}
                       onDelete={deleteTask}
                       onEdit={openModal}
+                      isSidebarHidden={isSidebarHidden} // Add this
                     />
+
                   </div>
                 );
               })}

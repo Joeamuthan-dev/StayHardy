@@ -1349,22 +1349,7 @@ html, body {
     max-width: none !important;
   }
 
-  .sidebar-hidden .priority-grid-container {
-    display: grid !important;
-    grid-template-columns: 2fr 1fr 1fr !important;
-    gap: 1.5rem !important;
-  }
 
-  .sidebar-hidden .priority-column-wrapper {
-    max-width: none !important;
-    min-width: 0 !important;
-  }
-
-  /* High Priority becomes 2 columns when sidebar is hidden on desktop */
-  .sidebar-hidden .priority-column-wrapper[data-priority="High"] .task-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    display: grid !important;
-  }
 }
 
 /* ── Page Shell — base (mobile) ── */
@@ -1428,16 +1413,11 @@ html, body {
 
 @media (min-width: 768px) {
   .priority-board {
-    flex-direction: row;
     overflow-x: auto;
-  }
-  .priority-grid-container {
-    flex-direction: row;
   }
   .priority-column-wrapper {
     flex: 1;
-    min-width: 320px;
-    max-width: 400px;
+    width: 100%; /* Make them fill full width vertically */
   }
 }
 
