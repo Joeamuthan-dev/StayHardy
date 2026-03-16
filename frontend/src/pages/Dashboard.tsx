@@ -211,9 +211,9 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, title, tasks, onT
               onEdit={onEdit}
             />
           ))}
- stream.
         </div>
       </SortableContext>
+
 
 
     </div>
@@ -1028,8 +1028,9 @@ const Dashboard: React.FC = () => {
       )}
       {detailTask && (
         <div className="premium-modal-overlay" onClick={() => setDetailTask(null)}>
-          <div className="bottom-sheet" onClick={e => e.stopPropagation()} style={{ padding: '2rem' }}>
+          <div className="bottom-sheet task-detail-sheet" onClick={e => e.stopPropagation()} style={{ padding: '2rem' }}>
             <div className="sheet-handle"></div>
+
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -1183,9 +1184,33 @@ const Dashboard: React.FC = () => {
         .light-mode .task-card-note {
           color: rgba(0, 0, 0, 0.4) !important;
         }
+
+        /* Desktop Modal Centering for Task Detail popup */
+        @media (min-width: 768px) {
+          .task-detail-sheet {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            bottom: auto !important;
+            border-radius: 1.5rem !important;
+            max-width: 480px !important;
+            width: 90% !important;
+            animation: sheetZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          }
+          .task-detail-sheet .sheet-handle {
+            display: none !important;
+          }
+        }
+
+        @keyframes sheetZoomIn {
+          from { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
       `}</style>
     </div>
   );
 };
 
 export default Dashboard;
+
