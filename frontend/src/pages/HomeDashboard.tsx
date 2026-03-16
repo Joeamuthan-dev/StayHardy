@@ -331,6 +331,67 @@ const HomeDashboard: React.FC = () => {
           letter-spacing: 0.1em;
           margin-top: 0.3rem;
         }
+
+        /* ── Routine Snapshot Styles ── */
+        .routine-snapshot-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+        @media (max-width: 480px) {
+          .routine-snapshot-grid { grid-template-columns: 1fr; }
+        }
+
+        .snapshot-card {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          background: #000000 !important;
+          padding: 1.25rem;
+          border-radius: 1.25rem;
+          border: 1px solid rgba(255, 255, 255, 0.03);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+        }
+        .snapshot-card:hover {
+          transform: translateY(-4px);
+          background: #050508 !important;
+        }
+
+        .snapshot-icon-container {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .progress-card { border-color: rgba(16, 185, 129, 0.15); }
+        .progress-card:hover { border-color: rgba(16, 185, 129, 0.5); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1); }
+        
+        .streak-card { border-color: rgba(239, 68, 68, 0.15); }
+        .streak-card:hover { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1); }
+        .streak-card .snapshot-icon-container { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .streak-card .snapshot-icon-container .material-symbols-outlined { font-variation-settings: "'FILL' 1"; }
+
+        .snapshot-value { font-size: 1.25rem; font-weight: 900; color: #ffffff; }
+        .snapshot-value.highlighted { color: #f87171; }
+        .snapshot-label { font-size: 0.6rem; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-top: 0.2rem; }
+
+        /* ── Goals Progress Styles ── */
+        .goal-progress-card {
+          background: #000000 !important;
+          padding: 1.25rem;
+          border-radius: 1.25rem;
+          border: 1px solid rgba(255, 255, 255, 0.03);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .goal-progress-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(59, 130, 246, 0.4);
+          box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+        }
       `}</style>
       <div className="aurora-bg">
         <div className="aurora-gradient-1"></div>
@@ -514,26 +575,32 @@ const HomeDashboard: React.FC = () => {
             <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-main)' }}>Routine Snapshot</h2>
             <button onClick={() => navigate('/routine')} style={{ background: 'none', border: 'none', color: '#10b981', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', cursor: 'pointer' }}>View Routine</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '1rem 0.75rem', borderRadius: '1rem' }}>
-              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>task_alt</span>
+          <div className="routine-snapshot-grid">
+            <div className="snapshot-card progress-card" onClick={() => navigate('/routine')}>
+              <div style={{ position: 'relative', width: '42px', height: '42px', flexShrink: 0 }}>
+                <svg width="42" height="42" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="16" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="3"></circle>
+                  <circle cx="21" cy="21" r="16" fill="transparent" stroke="#10b981" strokeWidth="3" strokeDasharray={`${todayRoutineRate || 0} ${100 - (todayRoutineRate || 0)}`} strokeDashoffset="25" strokeLinecap="round" style={{ transition: 'stroke-dasharray 0.5s ease' }} />
+                </svg>
+                <span className="material-symbols-outlined" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '1.1rem', color: '#10b981', fontVariationSettings: "'FILL' 1" }}>check</span>
               </div>
               <div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-main)' }}>{completedRoutinesToday} / {activeRoutinesTodayCount}</div>
-                <div style={{ fontSize: '0.55rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Today</div>
+                <div className="snapshot-value">{completedRoutinesToday} / {activeRoutinesTodayCount}</div>
+                <div className="snapshot-label">Routine Rate</div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '1rem 0.75rem', borderRadius: '1rem' }}>
-              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', flexShrink: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>local_fire_department</span>
+
+            <div className="snapshot-card streak-card" onClick={() => navigate('/routine')}>
+              <div className="snapshot-icon-container">
+                <span className="material-symbols-outlined">local_fire_department</span>
               </div>
               <div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-main)' }}>{currentStreak} Days</div>
-                <div style={{ fontSize: '0.55rem', fontWeight: 900, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Streak</div>
+                <div className="snapshot-value highlighted">{currentStreak} Days</div>
+                <div className="snapshot-label">Current Streak</div>
               </div>
             </div>
           </div>
+
         </section>
 
         {/* 4. Goals Progress */}
@@ -563,18 +630,25 @@ const HomeDashboard: React.FC = () => {
               }
 
               return (
-                <div key={goal.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>{goal.name}</div>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 900, color: isOverdue ? '#ef4444' : '#10b981', background: isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '0.5rem' }}>{daysLeftStr}</div>
+                <div key={goal.id} className="goal-progress-card" onClick={() => navigate('/goals')} style={{ cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      <span className="material-symbols-outlined" style={{ color: '#3b82f6', fontSize: '1.2rem', fontVariationSettings: "'FILL' 1" }}>track_changes</span>
+                      {goal.name}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.65rem', fontWeight: 900, color: isOverdue ? '#ef4444' : '#10b981', background: isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '0.3rem 0.6rem', borderRadius: '0.6rem' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.9rem' }}>schedule</span>
+                      {daysLeftStr}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px' }}>
-                      <div style={{ width: `${goal.progress || 0}%`, height: '100%', background: '#3b82f6', borderRadius: '3px', transition: 'width 1s ease-in-out' }}></div>
+                    <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div className="gradient-progress" style={{ width: `${goal.progress || 0}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6, #00f2fe)', borderRadius: '4px', transition: 'width 1s cubic-bezier(0.16, 1, 0.3, 1)' }}></div>
                     </div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#3b82f6' }}>{goal.progress || 0}%</span>
                   </div>
                 </div>
+
               );
             }) : (
               <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>No active goals. Time to set some!</div>
