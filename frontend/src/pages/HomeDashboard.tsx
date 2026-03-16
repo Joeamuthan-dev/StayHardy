@@ -561,11 +561,11 @@ const HomeDashboard: React.FC = () => {
                 <span className="material-symbols-outlined" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '1rem', color: '#10b981', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                   <span style={{ color: '#10b981', fontWeight: 900, fontSize: '1rem' }}>✓</span> Completed: {completedRoutinesToday}
+                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#ffffff' }}>
+                   {completedRoutinesToday || 0} / {activeRoutinesTodayCount || 0}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                   <span style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.9rem' }}>✕</span> Pending: {Math.max(0, activeRoutinesTodayCount - completedRoutinesToday)}
+                <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '0.1rem' }}>
+                   Completed
                 </div>
               </div>
             </div>
