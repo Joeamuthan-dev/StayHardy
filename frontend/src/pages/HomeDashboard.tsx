@@ -217,6 +217,20 @@ const HomeDashboard: React.FC = () => {
         .focus-tile:hover .running-animation {
           animation: run-bobble 0.45s infinite ease-in-out;
         }
+        @keyframes target-pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15) rotate(5deg); }
+        }
+        .focus-tile:hover .goals-animation {
+          animation: target-pulse 0.45s infinite ease-in-out;
+        }
+        @keyframes clip-swing {
+          0%, 100% { transform: rotate(0); }
+          50% { transform: rotate(-12deg); }
+        }
+        .focus-tile:hover .tasks-animation {
+          animation: clip-swing 0.45s infinite ease-in-out;
+        }
 
         /* Border Glow Accents */
         .tasks-tile { border-color: rgba(59, 130, 246, 0.2); }
@@ -490,7 +504,7 @@ const HomeDashboard: React.FC = () => {
           <div className="today-focus-grid">
             <div className="focus-tile tasks-tile" onClick={() => navigate('/dashboard')}>
               <div className="focus-icon-bg">
-                <span className="material-symbols-outlined">check_circle</span>
+                <span className="material-symbols-outlined tasks-animation">assignment_turned_in</span>
               </div>
               <div className="focus-content">
                 <div className="focus-value">{pendingTasks.length}</div>
@@ -510,7 +524,7 @@ const HomeDashboard: React.FC = () => {
 
             <div className="focus-tile goals-tile" onClick={() => navigate('/goals')}>
               <div className="focus-icon-bg">
-                <span className="material-symbols-outlined">flag</span>
+                <img src="/images/target_icon.png" className="goals-animation" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="Goal" />
               </div>
               <div className="focus-content">
                 <div className="focus-value">{activeGoals.length}</div>
