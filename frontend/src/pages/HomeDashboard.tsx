@@ -524,7 +524,7 @@ const HomeDashboard: React.FC = () => {
 
             <div className="focus-tile goals-tile" onClick={() => navigate('/goals')}>
               <div className="focus-icon-bg">
-                <img src="/images/target_icon.png" className="goals-animation" style={{ width: '28px', height: '28px', objectFit: 'contain' }} alt="Goal" />
+                <span className="material-symbols-outlined goals-animation">emoji_events</span>
               </div>
               <div className="focus-content">
                 <div className="focus-value">{activeGoals.length}</div>
