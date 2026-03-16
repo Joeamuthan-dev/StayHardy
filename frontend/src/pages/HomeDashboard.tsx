@@ -166,7 +166,7 @@ const HomeDashboard: React.FC = () => {
       setCompletingTaskId(null);
       const { error } = await supabase
         .from('tasks')
-        .update({ status: 'completed', updatedAt: new Date().toISOString(), completed_at: new Date().toISOString() })
+        .update({ status: 'completed', updatedAt: new Date().toISOString() })
         .eq('id', taskId);
       if (error) {
         console.error('Error completing task:', error);
