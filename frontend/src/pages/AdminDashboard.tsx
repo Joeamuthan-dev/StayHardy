@@ -5,57 +5,13 @@ import { supabase } from '../supabase';
 import BottomNav from '../components/BottomNav';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
-const UserMetrics: React.FC<{ userId: string }> = ({ userId }) => {
-  const [counts, setCounts] = useState({ tasks: 0, goals: 0, routines: 0 });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCounts = async () => {
-      setLoading(true);
-      const [
-        { count: tCount },
-        { count: gCount },
-        { count: rCount }
-      ] = await Promise.all([
-        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('userId', userId),
-        supabase.from('goals').select('*', { count: 'exact', head: true }).eq('userId', userId),
-        supabase.from('routines').select('*', { count: 'exact', head: true }).eq('user_id', userId)
-      ]);
-      if (isMounted) {
-        setCounts({ tasks: tCount || 0, goals: gCount || 0, routines: rCount || 0 });
-        setLoading(false);
-      }
-    };
-    fetchCounts();
-    return () => { isMounted = false; };
-  }, [userId]);
-
-  if (loading) {
-    return (
-      <React.Fragment>
-        <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem', opacity: 0.5 }}>...</td>
-        <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem', opacity: 0.5 }}>...</td>
-        <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem', opacity: 0.5 }}>...</td>
-      </React.Fragment>
-    );
-  }
-
-  return (
-    <React.Fragment>
-      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem' }}>{counts.tasks}</td>
-      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem' }}>{counts.goals}</td>
-      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: 'white', fontSize: '0.85rem' }}>{counts.routines}</td>
-    </React.Fragment>
-  );
-};
 
 const AdminDashboard: React.FC = () => {
   const [isSidebarHidden, setIsSidebarHidden] = useState(() => localStorage.getItem('sidebarHidden') === 'true');
   const toggleSidebar = () => { setIsSidebarHidden(prev => { const next = !prev; localStorage.setItem('sidebarHidden', next.toString()); return next; }); };
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ users: 0, tasks: 0, goals: 0 });
+  const [stats, setStats] = useState({ users: 0, tasks: 0, goals: 0, routines: 0, globalTasks: 0, globalRoutines: 0, globalTasksCompleted: 0 });
   const [users, setUsers] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'feedback'>('overview');
@@ -104,43 +60,58 @@ const AdminDashboard: React.FC = () => {
       
       if (userError) console.error('Error fetching admin user stats:', userError);
 
-      // 3. Fetch All Tasks, Goals, Routines for Charting & Aggregation
-      const [
-        { data: taskData },
-        { data: goalData },
-        { data: routineData }
-      ] = await Promise.all([
-        supabase.from('tasks').select('id, createdAt, userId'),
-        supabase.from('goals').select('id, createdAt, userId'),
-        supabase.from('routines').select('id, created_at, user_id')
-      ]);
+      // 3. Fetch All Tasks, Goals, Routines for Charting & Aggregation via RPC
+      const { data: rpcCounts } = await supabase.rpc('get_global_counts');
 
-      // Standardize the shape for our local aggregations (convert createdAt -> created_at, user_id -> userId)
-      const tasks = (taskData || []).map(t => ({ id: t.id, created_at: t.createdAt, userId: t.userId }));
-      const goals = (goalData || []).map(g => ({ id: g.id, created_at: g.createdAt, userId: g.userId }));
-      const routines = (routineData || []).map(r => ({ id: r.id, created_at: r.created_at, userId: r.user_id }));
+      // Standardize the shape for our local aggregations using RPC payloads
+      const tasks = (rpcCounts?.tasks || []).map((t: any) => ({ created_at: t.created_at, userId: t.userId }));
+      const goals = (rpcCounts?.goals || []).map((g: any) => ({ created_at: g.created_at, userId: g.userId }));
+      const routines = (rpcCounts?.routines || []).map((r: any) => ({ created_at: r.created_at, userId: r.userId }));
 
       setStats(prev => ({ 
         ...prev, 
         tasks: tasks.length,
         goals: goals.length,
-        routines: routines.length
+        routines: routines.length,
+        globalTasks: rpcCounts?.total_tasks || 0,
+        globalTasksCompleted: rpcCounts?.pending_tasks || 0,
+        globalRoutines: rpcCounts?.total_routines || 0
       }));
 
       // Aggregate counts per user to avoid N+1 queries natively via memory map
       if (userData) {
-        const userActivityMap: Record<string, { tasks: number, goals: number, routines: number }> = {};
+        const userActivityMap: Record<string, { tasks: number, goals: number, routines: number, productivityScore: number }> = {};
         userData.forEach(u => {
-           userActivityMap[u.id] = { tasks: 0, goals: 0, routines: 0 };
+           userActivityMap[u.id] = { tasks: 0, goals: 0, routines: 0, productivityScore: 0 };
         });
 
-        tasks.forEach(t => { if (userActivityMap[t.userId]) userActivityMap[t.userId].tasks++; });
-        goals.forEach(g => { if (userActivityMap[g.userId]) userActivityMap[g.userId].goals++; });
-        routines.forEach(r => { if (userActivityMap[r.userId]) userActivityMap[r.userId].routines++; });
+        tasks.forEach((t: any) => { if (userActivityMap[t.userId]) userActivityMap[t.userId].tasks++; });
+        goals.forEach((g: any) => { if (userActivityMap[g.userId]) userActivityMap[g.userId].goals++; });
+        routines.forEach((r: any) => { if (userActivityMap[r.userId]) userActivityMap[r.userId].routines++; });
+
+        // Calculate productivity score per user using weights: Routines (60%), Tasks (20%), Goals (20%)
+        userData.forEach(u => {
+          const uTasks = tasks.filter((t: any) => t.userId === u.id);
+          const uGoals = goals.filter((g: any) => g.userId === u.id);
+          const uRoutines = routines.filter((r: any) => r.userId === u.id);
+
+          const tasksProgress = uTasks.length > 0 
+            ? ((uTasks.filter((t: any) => t.status === 'completed').length) / uTasks.length) * 100 
+            : 0;
+
+          const goalsProgress = uGoals.length > 0 
+            ? (uGoals.reduce((acc: number, g: any) => acc + (g.status === 'completed' ? 100 : (Number(g.progress) || 0)), 0) / uGoals.length) 
+            : 0;
+
+          const routinesProgress = uRoutines.length > 0 ? 100 : 0; // Approximated over existing active triggers
+
+          const score = Math.round((routinesProgress * 0.6) + (tasksProgress * 0.2) + (goalsProgress * 0.2));
+          if (userActivityMap[u.id]) userActivityMap[u.id].productivityScore = score;
+        });
 
         const enrichedUsers = userData.map((u: any) => ({
           ...u,
-          stats: userActivityMap[u.id] || { tasks: 0, goals: 0, routines: 0 }
+          stats: userActivityMap[u.id] || { tasks: 0, goals: 0, routines: 0, productivityScore: 0 }
         }));
 
         setUsers(enrichedUsers);
@@ -396,7 +367,7 @@ const AdminDashboard: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>User Activity Trend</h3>
-                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Signups vs Tickets</p>
+                  <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>New Users</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem', borderRadius: '0.75rem' }}>
                   {[7, 30].map(days => (
@@ -466,9 +437,6 @@ const AdminDashboard: React.FC = () => {
                       itemStyle={{ fontWeight: 700 }}
                     />
                     <Area type="monotone" dataKey="signups" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorSignups)" name="New Users" />
-                    <Area type="monotone" dataKey="tasks" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorTasks)" name="Tasks Created" />
-                    <Area type="monotone" dataKey="goals" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorGoals)" name="Goals Created" />
-                    <Area type="monotone" dataKey="routines" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#colorRoutines)" name="Routines Created" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -484,6 +452,16 @@ const AdminDashboard: React.FC = () => {
                 <span className="material-symbols-outlined" style={{ color: '#f59e0b', marginBottom: '0.5rem', fontSize: '20px' }}>forum</span>
                 <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-main)' }}>{feedbacks.length}</h4>
                 <p style={{ margin: 0, fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Feedback</p>
+              </div>
+              <div className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ color: '#3b82f6', marginBottom: '0.5rem', fontSize: '20px' }}>task</span>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-main)' }}>{stats.globalTasksCompleted} / {stats.globalTasks}</h4>
+                <p style={{ margin: 0, fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Tasks Created</p>
+              </div>
+              <div className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ color: '#a855f7', marginBottom: '0.5rem', fontSize: '20px' }}>sync</span>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text-main)' }}>{stats.globalRoutines}</h4>
+                <p style={{ margin: 0, fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Routines Created</p>
               </div>
             </div>
 
@@ -587,9 +565,7 @@ const AdminDashboard: React.FC = () => {
                   <thead>
                     <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
                       <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.1em' }}>User Details</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#3b82f6', letterSpacing: '0.1em', textAlign: 'center' }}>Tasks</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#f59e0b', letterSpacing: '0.1em', textAlign: 'center' }}>Goals</th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#a855f7', letterSpacing: '0.1em', textAlign: 'center' }}>Routines</th>
+                       <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#BBFF00', letterSpacing: '0.1em', textAlign: 'center' }}>Productivity</th>
                       <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.1em' }}>Last Active</th>
                       <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.1em', textAlign: 'center' }}>Status</th>
                       <th style={{ padding: '1rem 1.5rem', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.1em', textAlign: 'right' }}>Management</th>
@@ -641,7 +617,7 @@ const AdminDashboard: React.FC = () => {
                               </div>
                             </div>
                           </td>
-                          <UserMetrics userId={u.id} />
+                            <td style={{ padding: '1.25rem 1.5rem', textAlign: 'center', fontWeight: 900, color: '#BBFF00', fontSize: '0.85rem' }}>{u.stats?.productivityScore || 0}%</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
                             {u.created_at ? new Date(u.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : 'N/A'}
                           </td>
