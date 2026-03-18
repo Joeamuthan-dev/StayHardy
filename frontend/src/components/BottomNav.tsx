@@ -73,7 +73,8 @@ const BottomNav: React.FC<{ isHidden?: boolean }> = ({ isHidden }) => {
       {/* ── Desktop left sidebar (hidden on mobile) ── */}
       {!isHidden && (
         <aside className="desktop-sidebar">
-          <div className="sidebar-logo">
+          <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <img src="https://tiavhmbpplerffdjmodw.supabase.co/storage/v1/object/sign/APPMEDIA/STAY.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hYjVjYTJiZS0xMmVjLTQwNmYtOWZmNy03YmJmOGIzMTc5YWEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBUFBNRURJQS9TVEFZLnBuZyIsImlhdCI6MTc3MzgyNDg1OSwiZXhwIjoxOTMxNTA0ODU5fQ.DRm3ClsU3QcR4ejuNhG1f0BjvSQjNfhRIFQGu1axH4w" alt="logo" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
             <span>StayHardy</span>
           </div>
 
