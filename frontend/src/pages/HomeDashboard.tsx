@@ -33,7 +33,7 @@ interface Goal {
   name: string;
   targetDate: string;
   status: 'pending' | 'completed';
-  progress: number;
+  progress?: number;
   createdAt: string;
 }
 
@@ -110,11 +110,12 @@ const HomeDashboard: React.FC = () => {
       .gte('completed_at', startDayStr);
     if (logsData) setRoutineLogs(logsData as RoutineLog[]);
 
-    const { data: goalsData } = await supabase
+    const { data: goalsData, error: goalsError } = await supabase
       .from('goals')
-      .select('id, name, status, progress, targetDate, createdAt')
+      .select('id, name, status, targetDate, createdAt')
       .eq('userId', user.id)
       .order('createdAt', { ascending: false });
+    if (goalsError) console.error('Error fetching goals:', goalsError);
     if (goalsData) setGoals(goalsData);
   }, [user?.id]);
 
@@ -211,15 +212,33 @@ const HomeDashboard: React.FC = () => {
     const checkStr = new Date(checkDate.getTime() - (checkDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
     const checkDayName = daysOfWeek[checkDate.getDay()];
     const scheduledThatDay = routines.filter(r => r.days?.includes(checkDayName)).length;
-    
     if (uniqueLogDaysSet.has(checkStr)) {
       currentStreak++;
     } else {
-      if (i === 0) continue; // Today missing doesn't break streak yet
-      if (scheduledThatDay === 0) continue; // Not scheduled, doesn't break streak
-      break; // Scheduled but missed
+      if (i === 0) continue;
+      if (scheduledThatDay === 0) continue;
+      break;
     }
   }
+
+  const getStreakColor = (s: number) => {
+    if (s === 0) return '#475569';
+    if (s <= 10) return '#4ade80'; // Light Green
+    if (s <= 20) return '#10b981'; // Dark Green
+    // Scaling from 20 to 100 days (HSL Hue 120 -> 0)
+    const ratio = Math.min(1, Math.max(0, (s - 20) / 80));
+    const hue = 120 - (ratio * 120); 
+    return `hsl(${Math.round(hue)}, 100%, 50%)`;
+  };
+
+  const getStreakTagline = (s: number) => {
+    if (s === 0) return 'Start your daily grind! 🌱';
+    if (s <= 10) return 'Building the habit! ⚡';
+    if (s <= 20) return 'Unstoppable Momentum! 🌪️';
+    if (s <= 50) return 'Warrior Mode Activated! ⚔️';
+    if (s <= 100) return 'Godlike Discipline! 👑';
+    return 'Unstoppable Legend! 🌟';
+  };
 
 
 
@@ -525,6 +544,15 @@ const HomeDashboard: React.FC = () => {
         .streak-card .snapshot-icon-container { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
         .streak-card .snapshot-icon-container .material-symbols-outlined { font-variation-settings: "'FILL' 1"; }
 
+        @keyframes flame-pulse {
+          0% { transform: scale(1); filter: brightness(1); }
+          50% { transform: scale(1.15) translateY(-2px); filter: brightness(1.3) drop-shadow(0 0 10px currentColor); }
+          100% { transform: scale(1); filter: brightness(1); }
+        }
+        .fire-animation {
+          animation: flame-pulse 1s infinite ease-in-out;
+        }
+
         .snapshot-value { font-size: 1.25rem; font-weight: 900; color: #ffffff; }
         .snapshot-value.highlighted { color: #f87171; }
         .snapshot-label { font-size: 0.6rem; font-weight: 900; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; margin-top: 0.2rem; }
@@ -802,12 +830,12 @@ const HomeDashboard: React.FC = () => {
             </div>
 
             <div className="neon-inner-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.01)', padding: '0.85rem 1rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.01)' }}>
-              <div style={{ width: '40px', height: '40px', background: 'rgba(239, 68, 68, 0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+              <div style={{ width: '40px', height: '40px', background: `${getStreakColor(currentStreak)}22`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: getStreakColor(currentStreak), boxShadow: currentStreak > 0 ? `0 0 15px ${getStreakColor(currentStreak)}33` : 'none', transition: 'all 0.3s ease' }}>
                 <span className="material-symbols-outlined fire-animation" style={{ fontSize: '1.2rem', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
               </div>
               <div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>{currentStreak} Day Streak</div>
-                <div style={{ fontSize: '0.7rem', color: '#f87171', fontWeight: 700, marginTop: '0.1rem' }}>Keep it going! 🔥</div>
+                <div style={{ fontSize: '0.7rem', color: getStreakColor(currentStreak), fontWeight: 700, marginTop: '0.1rem', transition: 'all 0.3s ease' }}>{getStreakTagline(currentStreak)}</div>
               </div>
             </div>
           </div>
@@ -822,6 +850,7 @@ const HomeDashboard: React.FC = () => {
 
           <div className="upcoming-goals-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
             {([...goals].filter(g => g.status === 'pending').sort((a, b) => {
+               if (!a.targetDate && !b.targetDate) return 0;
                if (!a.targetDate) return 1;
                if (!b.targetDate) return -1;
                return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
