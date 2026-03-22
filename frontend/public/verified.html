@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Email Verified — StayHardy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    min-height: 100%;
+    background: #050807;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle,
+      rgba(0,232,122,0.1) 0%,
+      transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes ambientPulse {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+  }
+
+  .particle {
+    position: fixed;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(0,232,122,0.5);
+    pointer-events: none;
+    z-index: 0;
+    animation: floatUp linear infinite;
+  }
+  .particle:nth-child(1) { left: 10%; bottom: 20%; animation-duration: 8s; }
+  .particle:nth-child(2) { left: 25%; bottom: 40%; animation-duration: 10s; animation-delay: 2s; width: 2px; height: 2px; }
+  .particle:nth-child(3) { left: 50%; bottom: 10%; animation-duration: 7s; animation-delay: 1s; }
+  .particle:nth-child(4) { left: 70%; bottom: 30%; animation-duration: 9s; animation-delay: 3s; width: 2px; height: 2px; }
+  .particle:nth-child(5) { left: 85%; bottom: 50%; animation-duration: 11s; animation-delay: 0.5s; }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0); opacity: 0.6; }
+    100% { transform: translateY(-100vh); opacity: 0; }
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(145deg, #0E1A13, #080C0A);
+    border: 1px solid rgba(0,232,122,0.15);
+    border-radius: 28px;
+    padding: 40px 32px 36px;
+    box-shadow:
+      0 0 0 1px rgba(0,232,122,0.05),
+      0 32px 80px rgba(0,0,0,0.7),
+      0 8px 32px rgba(0,0,0,0.4);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00E87A, #00C563);
+    border-radius: 28px 28px 0 0;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00C563, #00E87A);
+    border-radius: 0 0 28px 28px;
+  }
+
+  .check-wrap {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 24px;
+  }
+
+  .check-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: rgba(0,232,122,0.06);
+    animation: ringPulse 2.5s ease-in-out infinite;
+  }
+
+  .check-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    background: rgba(0,232,122,0.03);
+    animation: ringPulse 2.5s ease-in-out infinite 0.5s;
+  }
+
+  @keyframes ringPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .check-svg {
+    width: 90px;
+    height: 90px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .check-circle {
+    fill: none;
+    stroke: rgba(0,232,122,0.2);
+    stroke-width: 2;
+  }
+
+  .check-circle-fill {
+    fill: none;
+    stroke: #00E87A;
+    stroke-width: 2;
+    stroke-dasharray: 251;
+    stroke-dashoffset: 251;
+    stroke-linecap: round;
+    transform-origin: center;
+    transform: rotate(-90deg);
+    animation: drawCircle 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+  }
+
+  .check-mark {
+    fill: none;
+    stroke: #00E87A;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: drawCheck 0.5s cubic-bezier(0.22,1,0.36,1) 1s forwards;
+    filter: drop-shadow(0 0 6px rgba(0,232,122,0.6));
+  }
+
+  @keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .brand {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: #00E87A;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out 1.2s forwards;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out 1.35s forwards;
+  }
+
+  .subtext {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.7;
+    max-width: 300px;
+    margin: 0 auto 28px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out 1.5s forwards;
+  }
+
+  .subtext strong {
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(0,232,122,0.2),
+      transparent);
+    margin: 0 0 24px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 1.6s forwards;
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #00E87A, #00C563);
+    color: #000000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    box-shadow:
+      0 8px 32px rgba(0,232,122,0.3),
+      0 2px 8px rgba(0,0,0,0.3);
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease-out 1.7s forwards;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255,255,255,0.2),
+      transparent);
+    animation: shimmer 3s ease 2.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    40%, 100% { left: 160%; }
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 40px rgba(0,232,122,0.4);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 1.85s forwards;
+  }
+
+  .badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 2s forwards;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(0,232,122,0.07);
+    border: 1px solid rgba(0,232,122,0.15);
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #00E87A;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .footer {
+    font-size: 10px;
+    color: rgba(255,255,255,0.18);
+    line-height: 1.7;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 2.1s forwards;
+  }
+
+  .footer a {
+    color: rgba(0,232,122,0.4);
+    text-decoration: none;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 16px; }
+    .card { padding: 32px 24px 28px; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+<div class="particle"></div>
+
+<div class="card">
+
+  <div class="check-wrap">
+    <svg class="check-svg" viewBox="0 0 90 90">
+      <circle class="check-circle" cx="45" cy="45" r="40"/>
+      <circle class="check-circle-fill" cx="45" cy="45" r="40"/>
+      <path class="check-mark" d="M28 45 L40 57 L62 33"/>
+    </svg>
+  </div>
+
+  <p class="brand">StayHardy</p>
+
+  <h1>Email Verified! 🎉</h1>
+
+  <p class="subtext">
+    Your StayHardy account is now
+    <strong>active and ready.</strong>
+    Open the app and log in with your
+    email and PIN to start building
+    real discipline. 💪
+  </p>
+
+  <div class="divider"></div>
+
+  <a href="stayhardy://login" class="btn-primary">
+    Open StayHardy App →
+  </a>
+
+  <p class="note">
+    Button not working? Open the StayHardy app
+    manually and log in with your email and PIN.
+  </p>
+
+  <div class="badges">
+    <span class="badge">✦ 100% Free</span>
+    <span class="badge">✦ Zero Ads</span>
+    <span class="badge">✦ Private</span>
+  </div>
+
+  <p class="footer">
+    © 2026 StayHardy · Built by Joe Amuthan<br>
+    <a href="https://stayhardy.com">stayhardy.com</a>
+  </p>
+
+</div>
+
+<script>
+  setTimeout(() => {
+    window.location.href = 'stayhardy://login'
+  }, 1500)
+</script>
+
+</body>
+</html>
