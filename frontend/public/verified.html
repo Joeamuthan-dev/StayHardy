@@ -391,9 +391,40 @@
 </div>
 
 <script>
-  setTimeout(() => {
-    window.location.href = 'stayhardy://login'
-  }, 1500)
+  // Parse the URL hash for Supabase tokens
+  const hashParams = new URLSearchParams(
+    window.location.hash.replace('#', '')
+  )
+  const accessToken = hashParams.get('access_token')
+  const refreshToken = hashParams.get('refresh_token')
+  const type = hashParams.get('type')
+  
+  console.log('Verified page loaded')
+  console.log('Type:', type)
+  console.log('Has token:', !!accessToken)
+  
+  if (accessToken) {
+    // Token exists — email is verified
+    // Show the success UI (already visible)
+    console.log('Email verified successfully')
+    
+    // Try to open app after 1.5 seconds
+    setTimeout(() => {
+      window.location.href = 'stayhardy://login'
+    }, 1500)
+    
+    // If app doesn't open after 3 seconds
+    // just stay on page (user sees instructions)
+    
+  } else {
+    // No token — user came directly to this page
+    // Still show the page normally
+    console.log('No token — direct page visit')
+    
+    setTimeout(() => {
+      window.location.href = 'stayhardy://login'
+    }, 1500)
+  }
 </script>
 
 </body>
